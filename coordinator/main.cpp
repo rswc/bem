@@ -1,8 +1,3 @@
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <errno.h>
-#include <error.h>
 #include <vector>
 #include <iostream>
 #include <thread>
@@ -26,7 +21,7 @@ int main (int argc, char* argv[])
 
     // Temporary scuff interface
     std::string cmd, token;
-    while (!state.shouldQuit)
+    while (!state.shouldQuit) // placeholder: replace with epoll in threads?
     {
         std::cin >> cmd;
 
@@ -51,7 +46,8 @@ int main (int argc, char* argv[])
             for (auto& node : state.nodes)
             {
                 std::cout << "[" << node.id << "] " << inet_ntoa(node.addr.sin_addr)
-                    << ':' << ntohs(node.addr.sin_port) << " flag<" << node.flags << ">\n";
+                    << ':' << ntohs(node.addr.sin_port) << " flag<" << node.flags << ">"
+                    << " lch \"" << node.lastCh << "\"\n";
             }
             state.mtx_nodes.unlock();
         }
@@ -66,4 +62,6 @@ int main (int argc, char* argv[])
     }
 
     t_acc.join();
+    // join all from state.threads
+
 }

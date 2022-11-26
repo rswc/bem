@@ -4,9 +4,11 @@
 #include <errno.h>
 #include <error.h>
 #include <unistd.h>
+#include <thread>
 
 #include "accept.h"
 #include "node.h"
+#include "readNode.h"
 
 void setReuseAddr(int sock){
 	const int one = 1;
@@ -57,11 +59,23 @@ void acceptConnections(int port, State& state)
         
         // else
         newNode.id = nextNodeId++;
+        
         state.mtx_nodes.lock();
         state.nodes.push_back(newNode);
-        state.mtx_nodes.unlock();
+
+        int nidx = state.nodes.size() - 1;
 
         // spawn thread
+        std::thread t_rdnode(readNode, nodeSocket, std::ref(state.nodes[nidx]), std::ref(state));
+
+        state.mtx_nodes.unlock();
+
+
+        state.mtx_threads.lock();
+
+        state.threads.push_back(std::move(t_rdnode));
+
+        state.mtx_threads.unlock();
     }
 
     close(entrySocket);
