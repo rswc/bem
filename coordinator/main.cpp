@@ -33,9 +33,31 @@ int main (int argc, char* argv[])
             state.mtx_nodes.lock();
             for (auto& node : state.nodes)
             {
-                if (node.id == nid)
+                if (node->id == nid)
                 {
-                    node.flags |= NodeFlags::REGISTERED;
+                    node->flags |= NodeFlags::REGISTERED;
+                }
+            }
+            state.mtx_nodes.unlock();
+        }
+        else if (cmd == "sup")
+        {
+            std::cin >> token;
+            int nid = std::stoi(token);
+
+            state.mtx_nodes.lock();
+            for (auto& node : state.nodes)
+            {
+                if (node->id == nid)
+                {
+                    std::unique_lock<std::mutex> lck(node->mtx_msgQueue);
+                    if (node->sendMessage)
+                        break;
+                    
+                    node->sendMessage = true;
+                    node->cv_msgQueue.notify_one();
+
+                    break;
                 }
             }
             state.mtx_nodes.unlock();
@@ -45,9 +67,9 @@ int main (int argc, char* argv[])
             state.mtx_nodes.lock();
             for (auto& node : state.nodes)
             {
-                std::cout << "[" << node.id << "] " << inet_ntoa(node.addr.sin_addr)
-                    << ':' << ntohs(node.addr.sin_port) << " flag<" << node.flags << ">"
-                    << " lch \"" << node.lastCh << "\"\n";
+                std::cout << "[" << node->id << "] " << inet_ntoa(node->addr.sin_addr)
+                    << ':' << ntohs(node->addr.sin_port) << " flag<" << node->flags << ">"
+                    << " lch \"" << node->lastCh << "\"\n";
             }
             state.mtx_nodes.unlock();
         }

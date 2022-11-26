@@ -2,6 +2,8 @@
 
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <mutex>
+#include <condition_variable>
 
 enum NodeFlags {
     NONE,
@@ -15,5 +17,9 @@ struct Node
     socklen_t addrSize = sizeof(addr);
     int flags = NONE;
 
+    // Message queue simulator
     char lastCh = ' ';
+    bool sendMessage = false;
+    std::mutex mtx_msgQueue;
+    std::condition_variable cv_msgQueue;
 };
