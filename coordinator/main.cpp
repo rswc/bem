@@ -8,7 +8,7 @@
 #include "node.h"
 #include "accept.h"
 #include "state.h"
-
+#include "taskMessage.h"
 
 int main (int argc, char* argv[])
 {
@@ -69,6 +69,14 @@ int main (int argc, char* argv[])
 
             auto task = std::make_shared<Task>();
             task->cmd = "task cmd example";
+
+            TaskMessage msg;
+            msg.task.cmd = "task cmd example";
+            auto buf = msg.Serialize();
+
+            TaskMessage msg2;
+            msg2.Deserialize(buf);
+            std::cout << "Deserialized: " << msg2.task.cmd << "\n";
 
             state.mtx_nodes.lock();
             for (auto& node : state.nodes)
