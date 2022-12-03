@@ -62,6 +62,26 @@ int main (int argc, char* argv[])
             }
             state.mtx_nodes.unlock();
         }
+        else if (cmd == "task")
+        {
+            std::cin >> token;
+            int nid = std::stoi(token);
+
+            auto task = std::make_shared<Task>();
+            task->cmd = "task cmd example";
+
+            state.mtx_nodes.lock();
+            for (auto& node : state.nodes)
+            {
+                if (node->id == nid)
+                {
+                    node->assignTask(task);
+
+                    break;
+                }
+            }
+            state.mtx_nodes.unlock();
+        }
         else if (cmd == "list")
         {
             state.mtx_nodes.lock();
