@@ -45,17 +45,19 @@ int main (int argc, char* argv[])
             std::cin >> token;
             int nid = std::stoi(token);
 
+            auto msg = std::make_unique<TaskMessage>();
+            msg->task.cmd = "sup man\n";
+
+            auto msg2 = std::make_unique<TaskMessage>();
+            msg2->task.cmd = "how's it hangin\n";
+
             state.mtx_nodes.lock();
             for (auto& node : state.nodes)
             {
                 if (node->id == nid)
                 {
-                    std::unique_lock<std::mutex> lck(node->mtx_msgQueue);
-                    if (node->sendMessage)
-                        break;
-                    
-                    node->sendMessage = true;
-                    node->cv_msgQueue.notify_one();
+                    node->Send(std::move(msg));
+                    node->Send(std::move(msg2));
 
                     break;
                 }
@@ -83,7 +85,7 @@ int main (int argc, char* argv[])
             {
                 if (node->id == nid)
                 {
-                    node->assignTask(task);
+                    node->AssignTask(task);
 
                     break;
                 }

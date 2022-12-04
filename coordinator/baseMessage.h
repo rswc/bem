@@ -19,6 +19,5 @@ protected:
 public:
     virtual MessageBuffer Serialize() const = 0;
     virtual void Deserialize(MessageBuffer& buffer) = 0;
-
-    void WriteNextBytes();
+    
 };

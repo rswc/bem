@@ -11,6 +11,8 @@ BaseMessage::MessageBuffer TaskMessage::Serialize() const
         buf.Put(ch);
     }
 
+    buf.Seek(0);
+
     return buf;
 }
 
@@ -19,5 +21,5 @@ void TaskMessage::Deserialize(MessageBuffer& buffer)
     size_t len = buffer.Get<size_t>();
 
     task.cmd.resize(len);
-    buffer.Get(task.cmd[0], len);
+    buffer.Get(&task.cmd[0], len);
 }

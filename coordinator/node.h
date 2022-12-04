@@ -5,8 +5,13 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include <deque>
 
 #include "task.h"
+#include "baseMessage.h"
+
+
+class State;
 
 enum NodeFlags {
     NONE,
@@ -15,8 +20,13 @@ enum NodeFlags {
 
 class Node
 {
+    friend void writeNode(int sock, std::shared_ptr<Node> node, State& state);
+    friend void readNode(int sock, std::shared_ptr<Node> node, State& state);
 private:
     std::vector<std::shared_ptr<Task>> tasks;
+
+    std::mutex mtx_msgQueue;
+    std::condition_variable cv_msgQueue;
 
 public:
     int id = -1;
@@ -26,9 +36,9 @@ public:
 
     // Message queue simulator
     char lastCh = ' ';
-    bool sendMessage = false;
-    std::mutex mtx_msgQueue;
-    std::condition_variable cv_msgQueue;
+    
+    std::deque<std::unique_ptr<BaseMessage>> messageQueue;
 
-    void assignTask(std::shared_ptr<Task> task);
+    void AssignTask(std::shared_ptr<Task> task);
+    void Send(std::unique_ptr<BaseMessage> message);
 };

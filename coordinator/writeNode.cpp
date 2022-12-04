@@ -9,24 +9,25 @@ void writeNode(int sock, std::shared_ptr<Node> node, State& state)
     while (!state.shouldQuit)
     {
         std::unique_lock<std::mutex> lck(node->mtx_msgQueue);
-        node->cv_msgQueue.wait(lck, [&node]() { return node->sendMessage; });
+        node->cv_msgQueue.wait(lck, [&]() { return node->messageQueue.size() > 0; });
 
         // take message object from queue
-        node->sendMessage = false;
+        auto msg = std::move(node->messageQueue.front());
+        node->messageQueue.pop_front();
+
         lck.unlock();
         
-        std::string msg = "sup man";
-        int cur = 0;
+        auto mbuf = msg->Serialize();
 
-        while (cur < msg.size() - 1)
+        while (mbuf.RemainingBytes() > 0)
         {
-            auto ret = write(sock, msg.c_str() + cur, msg.size() - cur);
+            auto ret = write(sock, mbuf.Next(), mbuf.RemainingBytes());
             if  (ret == -1)
             {
                 error(1, errno, "write failed on node %d", node->id);
             }
 
-            cur += ret;
+            mbuf.Advance(ret);
         }
     }
 }
