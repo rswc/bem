@@ -1,40 +1,81 @@
 #pragma once
 
-#include <sstream>
+#include <vector>
+#include <stdexcept>
+#include <string.h>
 
 
 class ByteBuffer
 {
 private:
-    std::stringbuf internal;
+    std::vector<char> internal;
+    int position = 0;
+
 public:
     int Length();
+    void Seek(int to);
 
     template <typename T>
     void Put(const T& data)
     {
-        internal.sputn(reinterpret_cast<const char*>(&data), sizeof(data));
+        // if (position + sizeof(data) > internal.size())
+        // {
+        //     internal.resize((position + sizeof(data)));
+        // }
+
+        std::copy(reinterpret_cast<const char*>(&data), reinterpret_cast<const char*>(&data) + sizeof(data), std::back_inserter(internal));
+
+        position += sizeof(data);
     }
 
     template <typename T>
+    T GetAt(int index)
+    {
+        if (index + sizeof(T) <= internal.size())
+            return *reinterpret_cast<T*>(&internal[index]);
+        
+        throw std::invalid_argument("Buffer index out of range");
+    }
+
+    template <typename T>
+    void GetAt(T& dest, int index)
+    {
+        if (index + sizeof(T) <= internal.size())
+            memcpy(&dest, &internal[index], sizeof(T));
+            return;
+
+        throw std::invalid_argument("Buffer index out of range");
+    }
+
+    template <typename T>
+    void GetAt(T* dest, int index, int n)
+    {
+        if (index + n - 1 <= internal.size())
+            memcpy(dest, &internal[index], n);
+            return;
+        
+        throw std::invalid_argument("Buffer index out of range");
+    }
+    
+    template <typename T>
     T Get()
     {
-        T tmp;
-
-        internal.sgetn(reinterpret_cast<char*>(&tmp), sizeof(tmp));
-
+        T tmp = GetAt<T>(position);
+        position += sizeof(T);
         return tmp;
     }
 
     template <typename T>
     void Get(T& dest)
     {
-        internal.sgetn(reinterpret_cast<char*>(&dest), sizeof(dest));
+        GetAt(dest, position);
+        position += sizeof(T);
     }
 
     template <typename T>
-    void Get(T& dest, int n)
+    void Get(T* dest, int n)
     {
-        internal.sgetn(reinterpret_cast<char*>(&dest), n);
+        GetAt(dest, position, n);
+        position += n;
     }
 };

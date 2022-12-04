@@ -3,5 +3,10 @@
 
 int ByteBuffer::Length()
 {
-    return internal.in_avail();
+    return internal.size();
+}
+
+void ByteBuffer::Seek(int to)
+{
+    position = to;
 }
