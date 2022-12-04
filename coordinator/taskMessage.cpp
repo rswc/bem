@@ -5,12 +5,10 @@ BaseMessage::MessageBuffer TaskMessage::Serialize() const
 {
     MessageBuffer buf;
 
-    buf.Put(task.cmd.size());
-    for (char ch : task.cmd)
-    {
-        buf.Put(ch);
-    }
+    task.Serialize(buf);
 
+    // message contents are now serialized
+    // reset position to 0, to prepare for writing
     buf.Seek(0);
 
     return buf;
@@ -18,8 +16,5 @@ BaseMessage::MessageBuffer TaskMessage::Serialize() const
 
 void TaskMessage::Deserialize(MessageBuffer& buffer)
 {
-    size_t len = buffer.Get<size_t>();
-
-    task.cmd.resize(len);
-    buffer.Get(&task.cmd[0], len);
+    task.Deserialize(buffer);
 }
