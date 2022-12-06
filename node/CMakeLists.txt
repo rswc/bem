@@ -5,14 +5,14 @@ add_executable(node)
 
 target_sources(node
     PRIVATE
-        main.cpp
-        state.cpp
-        write.cpp
+        src/main.cpp
+        src/state.cpp
+        src/write.cpp
 )
 
 target_include_directories(node
     PRIVATE
-        ../common
+        ../common/src
 )
 
 # Link the "node" target against the "common" library

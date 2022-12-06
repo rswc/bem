@@ -4,7 +4,7 @@ add_library(commonlib)
 # Add the cpp files to the "commonlib" target
 target_sources(commonlib
     PRIVATE
-        byteBuffer.cpp
-        task.cpp
-        taskMessage.cpp
+        src/byteBuffer.cpp
+        src/task.cpp
+        src/taskMessage.cpp
 )
