@@ -9,6 +9,8 @@ class TaskMessage : public BaseMessage
 private:
 
 public:
+    virtual MessageType GetType() const;
+
     Task task;
     MessageBuffer Serialize() const;
     void Deserialize(MessageBuffer& buffer);
