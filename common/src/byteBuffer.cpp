@@ -1,7 +1,7 @@
 #include "byteBuffer.h"
 
 
-int ByteBuffer::Length() const
+size_t ByteBuffer::Length() const
 {
     return internal.size();
 }

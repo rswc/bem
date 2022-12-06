@@ -12,7 +12,7 @@ private:
     int position = 0;
 
 public:
-    int Length() const;
+    size_t Length() const;
     int RemainingBytes() const;
     void Seek(int to);
     void Advance(int by);
@@ -21,7 +21,10 @@ public:
     template <typename T>
     void Put(const T& data)
     {
-        std::copy(reinterpret_cast<const char*>(&data), reinterpret_cast<const char*>(&data) + sizeof(data), std::back_inserter(internal));
+        if (position + sizeof(data) > internal.size())
+            internal.resize(position + sizeof(data));
+    
+        memcpy(&internal[position], &data, sizeof(data));
 
         position += sizeof(data);
     }
