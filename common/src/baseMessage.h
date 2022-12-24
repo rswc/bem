@@ -13,7 +13,9 @@ public:
         TASK
     };
 
-    virtual inline MessageType GetType() const = 0;
+    static const size_t HEADER_SIZE = sizeof(MessageType) + sizeof(size_t);
+
+    virtual MessageType GetType() const = 0;
 
 protected:
     typedef ByteBuffer MessageBuffer;
