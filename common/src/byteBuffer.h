@@ -13,7 +13,7 @@ private:
 
 public:
     size_t Length() const;
-    int RemainingBytes() const;
+    size_t RemainingBytes() const;
     void Seek(int to);
     void Advance(int by);
     const char* Next() const;
@@ -27,6 +27,19 @@ public:
         memcpy(&internal[position], &data, sizeof(data));
 
         position += sizeof(data);
+    }
+
+    template <typename T>
+    void PutN(const T* data, size_t n)
+    {
+        size_t tsize = n * sizeof(T);
+
+        if (position + tsize > internal.size())
+            internal.resize(position + tsize);
+    
+        memcpy(&internal[position], data, tsize);
+
+        position += tsize;
     }
 
     template <typename T>

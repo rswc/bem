@@ -6,7 +6,7 @@ size_t ByteBuffer::Length() const
     return internal.size();
 }
 
-int ByteBuffer::RemainingBytes() const
+size_t ByteBuffer::RemainingBytes() const
 {
     return Length() - position;
 }
