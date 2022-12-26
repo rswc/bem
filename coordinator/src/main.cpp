@@ -98,8 +98,7 @@ int main (int argc, char* argv[])
             for (auto& node : state.nodes)
             {
                 std::cout << "[" << node->id << "] " << inet_ntoa(node->addr.sin_addr)
-                    << ':' << ntohs(node->addr.sin_port) << " flag<" << node->flags << ">"
-                    << " lch \"" << node->lastCh << "\"\n";
+                    << ':' << ntohs(node->addr.sin_port) << " flag<" << node->flags << ">";
             }
             state.mtx_nodes.unlock();
         }

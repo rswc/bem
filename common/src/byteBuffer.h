@@ -12,8 +12,8 @@ private:
     int position = 0;
 
 public:
-    int Length() const;
-    int RemainingBytes() const;
+    size_t Length() const;
+    size_t RemainingBytes() const;
     void Seek(int to);
     void Advance(int by);
     const char* Next() const;
@@ -21,9 +21,25 @@ public:
     template <typename T>
     void Put(const T& data)
     {
-        std::copy(reinterpret_cast<const char*>(&data), reinterpret_cast<const char*>(&data) + sizeof(data), std::back_inserter(internal));
+        if (position + sizeof(data) > internal.size())
+            internal.resize(position + sizeof(data));
+    
+        memcpy(&internal[position], &data, sizeof(data));
 
         position += sizeof(data);
+    }
+
+    template <typename T>
+    void PutN(const T* data, size_t n)
+    {
+        size_t tsize = n * sizeof(T);
+
+        if (position + tsize > internal.size())
+            internal.resize(position + tsize);
+    
+        memcpy(&internal[position], data, tsize);
+
+        position += tsize;
     }
 
     template <typename T>

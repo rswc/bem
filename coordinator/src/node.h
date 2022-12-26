@@ -33,9 +33,6 @@ public:
     sockaddr_in addr{0};
     socklen_t addrSize = sizeof(addr);
     int flags = NONE;
-
-    // Message queue simulator
-    char lastCh = ' ';
     
     std::deque<std::unique_ptr<BaseMessage>> messageQueue;
 
