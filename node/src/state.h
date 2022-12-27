@@ -3,6 +3,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <deque>
+#include <atomic>
 
 #include "baseMessage.h"
 #include "task.h"
@@ -11,6 +12,7 @@
 class State
 {
 public:
+
     std::mutex mtx_sendQueue, mtx_recvQueue, mtx_taskQueue;
     std::condition_variable cv_sendQueue, cv_recvQueue, cv_taskQueue;
 
@@ -19,4 +21,6 @@ public:
 
     void Send(std::unique_ptr<BaseMessage> message);
     std::unique_ptr<BaseMessage> Receive();
+
+    std::atomic_bool shouldQuit = false;
 };

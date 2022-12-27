@@ -6,7 +6,7 @@
 
 void writeServer(int sock, State& state)
 {
-    while (true) {
+    while (!state.shouldQuit) {
         std::unique_lock<std::mutex> guard(state.mtx_sendQueue);
         state.cv_sendQueue.wait(guard, [&]() { 
             return !state.sendMessageQueue.empty(); 
@@ -24,6 +24,9 @@ void writeServer(int sock, State& state)
             if  (ret == -1)
             {
                 error(1, errno, "write failed");
+                state.shouldQuit = true;
+            } else if (ret == 0){
+                state.shouldQuit = true;
             }
 
             mbuf.Advance(ret);

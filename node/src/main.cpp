@@ -72,11 +72,15 @@ bool syncWithServer(State &state) {
 
 
 void doTasks(State &state) {
-    while (true) {
+    while (!state.shouldQuit) {
         std::unique_lock<std::mutex> guard(state.mtx_taskQueue);
         state.cv_taskQueue.wait(guard, [&]{
             return !state.taskQueue.empty();
         });
+        if (state.shouldQuit) {
+            break;
+        }
+
         Task task = state.taskQueue.front();
         state.taskQueue.pop_front();
         guard.unlock();
@@ -97,17 +101,16 @@ int main(int argc, char const *argv[])
 
     int sock = connectToServer();
 
-    // graceful exit?
     std::thread t_write(writeServer, sock, std::ref(state));
     std::thread t_read(readServer, sock, std::ref(state));
     std::thread t_task(doTasks, std::ref(state));
 
     bool result = syncWithServer(state);
     if (!result) {
-        return 1;
+        state.shouldQuit = true;
     }
 
-    while (true) {
+    while (!state.shouldQuit) {
         std::cout << "Waiting for server instructions..." << std::endl;
         auto msg = state.Receive();
         

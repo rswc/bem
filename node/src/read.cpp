@@ -12,12 +12,15 @@ void readServer(int sock, State& state)
     char buf[32];
     MessageFactory factory;
 
-    while (true) 
+    while (!state.shouldQuit) 
     {
         auto len = read(sock, &buf, 32);
 	    if (len == -1) 
         {
             error(1, errno, "read failed on server");
+        } else if (len == 0) {
+            state.shouldQuit = true;
+            break;
         }
 
         if (len > 0)
