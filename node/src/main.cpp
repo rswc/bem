@@ -59,15 +59,15 @@ bool syncWithServer(State &state) {
     
     if (msg_ptr->getProtocolVersion() == 0) {
         std::cout << "Server returned correct protocol version." << std::endl;
+        
+        auto ack_msg = std::make_unique<ReadyMessage>(); 
+        state.Send(std::move(ack_msg));
+        
         return true;
     } else {
         std::cout << "Sync with server failed" << std::endl;
         return false;
     }
-    
-    auto ack_msg = std::make_unique<ReadyMessage>(); 
-    state.Send(std::move(ack_msg));
-    return true;
 }
 
 
