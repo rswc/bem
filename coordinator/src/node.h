@@ -5,6 +5,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include <atomic>
 #include <deque>
 
 #include "task.h"
@@ -28,6 +29,7 @@ private:
 
     std::mutex mtx_msgQueue;
     std::condition_variable cv_msgQueue;
+    std::atomic_bool shouldQuit = false;
 
 public:
     int id = -1;

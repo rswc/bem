@@ -18,7 +18,7 @@ void readServer(int sock, State& state)
 	    if (len == -1) 
         {
             error(1, errno, "read failed on server");
-        } else if (len == 0) {
+        } else if (len == 0) { 
             state.shouldQuit = true;
             break;
         }

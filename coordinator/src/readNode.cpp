@@ -5,20 +5,22 @@
 #include <iostream>
 
 #include "messageFactory.h"
-#include "taskMessage.h"
-
 
 void readNode(int sock, std::shared_ptr<Node> node, State& state)
 {
     char buf[32];
     MessageFactory factory;
 
-    while (!state.shouldQuit)
+    while (!state.shouldQuit || !node->shouldQuit)
     {
         auto len = read(sock, &buf, 32);
 	    if (len == -1) 
         {
             error(1, errno, "read failed on node %d", node->id);
+        } else if (len == 0) {
+            std::cout << "[READN]: NodeQuit, connection dropped." << std::endl;
+            node->shouldQuit = true;
+            break;
         }
 
         if (len > 0)

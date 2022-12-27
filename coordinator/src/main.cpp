@@ -8,11 +8,9 @@
 #include "node.h"
 #include "accept.h"
 #include "state.h"
-#include "taskMessage.h"
 #include "handler.h"
 
-#include "pingMessage.h"
-#include "helloMessage.h"
+#include "messages.h"
 
 int main (int argc, char* argv[])
 {

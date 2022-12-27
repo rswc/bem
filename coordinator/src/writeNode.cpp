@@ -1,12 +1,13 @@
 #include "writeNode.h"
 
+#include <iostream>
 #include <unistd.h>
 #include <error.h>
 #include <string>
 
 void writeNode(int sock, std::shared_ptr<Node> node, State& state)
 {
-    while (!state.shouldQuit)
+    while (!state.shouldQuit || !node->shouldQuit)
     {
         std::unique_lock<std::mutex> lck(node->mtx_msgQueue);
         node->cv_msgQueue.wait(lck, [&]() { return node->messageQueue.size() > 0; });
@@ -25,6 +26,11 @@ void writeNode(int sock, std::shared_ptr<Node> node, State& state)
             if  (ret == -1)
             {
                 error(1, errno, "write failed on node %d", node->id);
+            }
+            else if (ret == 0) {
+                std::cout << "[WRITEN]: NodeQuit, connection dropped." << std::endl;
+                node->shouldQuit = true;
+                break;
             }
 
             mbuf.Advance(ret);

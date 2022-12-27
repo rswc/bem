@@ -5,7 +5,7 @@
 #include "messages.h"
 
 void handleReadyMessage(State &state, int node_id, ReadyMessage *msg) {
-    std::cout << "[WT]: Node " << node_id << " sent READY message! Setting node as REGISTERED.";
+    std::cout << "[WT]: Node " << node_id << " sent READY message! Setting node as REGISTERED." << std::endl;
     state.mtx_nodes.lock();
     for (auto& node : state.nodes)
     {
@@ -19,7 +19,7 @@ void handleReadyMessage(State &state, int node_id, ReadyMessage *msg) {
 }
 
 void handlePongMessage(State &state, int node_id, PongMessage *msg) {
-    std::cout << "[WT]: Node " << node_id << " sent PONG message!";
+    std::cout << "[WT]: Node " << node_id << " sent PONG message!" << std::endl;
 }
 
 void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
@@ -49,7 +49,7 @@ void handleCoordinatorMessages(State &state) {
                 ReadyMessage *msg_ptr = dynamic_cast<ReadyMessage*>(msg.get());
                 handleReadyMessage(state, node_id, msg_ptr); 
             } break;
-            case BaseMessage::PING:  {
+            case BaseMessage::PONG:  {
                 PongMessage *msg_ptr = dynamic_cast<PongMessage*>(msg.get());
                 handlePongMessage(state, node_id, msg_ptr);
             } break;
