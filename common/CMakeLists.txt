@@ -10,4 +10,9 @@ target_sources(commonlib
         src/messageFactory.cpp
         src/task.cpp
         src/taskMessage.cpp
+        src/helloMessage.cpp 
+        src/pingMessage.cpp 
+        src/pongMessage.cpp
+        src/readyMessage.cpp
+        src/resultMessage.cpp 
 )

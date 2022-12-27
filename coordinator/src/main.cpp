@@ -9,6 +9,10 @@
 #include "accept.h"
 #include "state.h"
 #include "taskMessage.h"
+#include "handler.h"
+
+#include "pingMessage.h"
+#include "helloMessage.h"
 
 int main (int argc, char* argv[])
 {
@@ -18,38 +22,22 @@ int main (int argc, char* argv[])
     State state;
 
     std::thread t_acc(acceptConnections, port, std::ref(state));
-
+    std::thread t_handler(handleCoordinatorMessages, std::ref(state));
+    
     // Temporary scuff interface
     std::string cmd, token;
     while (!state.shouldQuit) // placeholder: replace with epoll in threads?
     {
+        std::cout << "> ";
         std::cin >> cmd;
 
-        if (cmd == "acc")
+        if (cmd == "hello")
         {
             std::cin >> token;
             int nid = std::stoi(token);
 
-            state.mtx_nodes.lock();
-            for (auto& node : state.nodes)
-            {
-                if (node->id == nid)
-                {
-                    node->flags |= NodeFlags::REGISTERED;
-                }
-            }
-            state.mtx_nodes.unlock();
-        }
-        else if (cmd == "sup")
-        {
-            std::cin >> token;
-            int nid = std::stoi(token);
-
-            auto msg = std::make_unique<TaskMessage>();
-            msg->task.cmd = "sup man\n";
-
-            auto msg2 = std::make_unique<TaskMessage>();
-            msg2->task.cmd = "how's it hangin\n";
+            auto msg = std::make_unique<HelloMessage>();
+            msg->init(0, 0);
 
             state.mtx_nodes.lock();
             for (auto& node : state.nodes)
@@ -57,8 +45,22 @@ int main (int argc, char* argv[])
                 if (node->id == nid)
                 {
                     node->Send(std::move(msg));
-                    node->Send(std::move(msg2));
-
+                    break;
+                }
+            }
+            state.mtx_nodes.unlock();
+        }
+        else if (cmd == "ping")
+        {
+            std::cin >> token;
+            int nid = std::stoi(token);
+            auto msg = std::make_unique<PingMessage>();
+            state.mtx_nodes.lock();
+            for (auto& node : state.nodes)
+            {
+                if (node->id == nid && (node->flags & NodeFlags::REGISTERED) != 0)
+                {
+                    node->Send(std::move(msg));
                     break;
                 }
             }
@@ -69,24 +71,15 @@ int main (int argc, char* argv[])
             std::cin >> token;
             int nid = std::stoi(token);
 
-            auto task = std::make_shared<Task>();
-            task->cmd = "task cmd example";
-
-            TaskMessage msg;
-            msg.task.cmd = "task cmd example";
-            auto buf = msg.Serialize();
-
-            TaskMessage msg2;
-            msg2.Deserialize(buf);
-            std::cout << "Deserialized: " << msg2.task.cmd << "\n";
+            auto msg =  std::make_unique<TaskMessage>();
+            msg->task = Task(10, "Test Task");
 
             state.mtx_nodes.lock();
             for (auto& node : state.nodes)
             {
-                if (node->id == nid)
+                if (node->id == nid && (node->flags & NodeFlags::REGISTERED) != 0)
                 {
-                    node->AssignTask(task);
-
+                    node->Send(std::move(msg));
                     break;
                 }
             }
@@ -98,9 +91,10 @@ int main (int argc, char* argv[])
             for (auto& node : state.nodes)
             {
                 std::cout << "[" << node->id << "] " << inet_ntoa(node->addr.sin_addr)
-                    << ':' << ntohs(node->addr.sin_port) << " flag<" << node->flags << ">";
+                    << ':' << ntohs(node->addr.sin_port) << " flag<" << node->flags << ">\n";
             }
             state.mtx_nodes.unlock();
+            std::cout.flush();
         }
         else if (cmd == "quit")
         {
@@ -113,6 +107,7 @@ int main (int argc, char* argv[])
     }
 
     t_acc.join();
+    t_handler.join();
     // join all from state.threads
 
 }

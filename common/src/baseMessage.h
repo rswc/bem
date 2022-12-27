@@ -9,8 +9,14 @@ public:
     enum MessageType : char {
         NONE,
         ERROR,
-        HELLO,
-        TASK
+        HELLO,  // Server sends hello with its current config
+        READY,  // Node sends sync proof
+        SYNC,   // Node can request assets
+        TASK,   // 
+        RESULT,
+        PING,   // Heartbeat from server
+        PONG,   // Result
+        N_MESSAGE_TYPES,
     };
 
     static const size_t HEADER_SIZE = sizeof(MessageType) + sizeof(size_t);
@@ -24,6 +30,7 @@ protected:
     
 public:
     virtual MessageBuffer Serialize() const = 0;
+    // TODO: it should be documented, that buffer does not contain type and length
     virtual void Deserialize(MessageBuffer& buffer) = 0;
     
 };

@@ -36,18 +36,33 @@ void MessageFactory::Interpret()
     buf->Seek(BaseMessage::HEADER_SIZE);
     
     // Create Message based on type
-    switch (type)
-    {
-    case Type::TASK:
-        message = std::make_unique<TaskMessage>();
-
-        // yeah, alright
-        message->Deserialize(*buf);
-        break;
     
-    default:
+    // TODO: move validation to other function
+    if (type <= BaseMessage::NONE || type >= BaseMessage::N_MESSAGE_TYPES) {
         message = MakeInvalid();
-        break;
+    } else {
+        switch (type)
+        {
+            case BaseMessage::MessageType::TASK:
+                message = std::make_unique<TaskMessage>();
+                break;
+            case BaseMessage::MessageType::RESULT:
+                message = std::make_unique<ResultMessage>();
+                break;
+            case BaseMessage::MessageType::PING:
+                message = std::make_unique<PingMessage>();
+                break;
+            case BaseMessage::MessageType::PONG:
+                message = std::make_unique<PongMessage>();
+                break;
+            case BaseMessage::MessageType::HELLO:
+                message = std::make_unique<HelloMessage>();
+                break;
+            case BaseMessage::MessageType::READY:
+                message = std::make_unique<ReadyMessage>();
+                break;
+        }
+        message->Deserialize(*buf);
     }
 
     ready = true;

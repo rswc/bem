@@ -13,12 +13,8 @@ void Node::AssignTask(std::shared_ptr<Task> task)
 
 void Node::Send(std::unique_ptr<BaseMessage> message)
 {
-    std::unique_lock<std::mutex> lck(mtx_msgQueue);
-    
+    std::unique_lock<std::mutex> guard(mtx_msgQueue);
     messageQueue.push_back(std::move(message));
-
-    if (messageQueue.size() == 1)
-    {
-        cv_msgQueue.notify_one();
-    }
+    guard.unlock();
+    cv_msgQueue.notify_one();
 }
