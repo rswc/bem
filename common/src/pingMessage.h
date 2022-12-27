@@ -1,18 +1,14 @@
 #pragma once
 
 #include "baseMessage.h"
-#include "task.h"
 
-
-class TaskMessage : public BaseMessage
+class PingMessage : public BaseMessage
 {
 private:
-
+    
 public:
+    PingMessage();
     virtual MessageType GetType() const;
-    // TODO: adpapt to Task
-
-    Task task;
     MessageBuffer Serialize() const;
     void Deserialize(MessageBuffer& buffer);
 };

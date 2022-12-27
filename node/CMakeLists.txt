@@ -8,6 +8,7 @@ target_sources(node
         src/main.cpp
         src/state.cpp
         src/write.cpp
+        src/read.cpp
 )
 
 target_include_directories(node

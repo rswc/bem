@@ -1,6 +1,5 @@
 #include "taskMessage.h"
 
-
 BaseMessage::MessageType TaskMessage::GetType() const
 {
     return TASK;

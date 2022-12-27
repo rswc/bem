@@ -15,7 +15,8 @@ class State;
 
 enum NodeFlags {
     NONE,
-    REGISTERED = 1
+    REGISTERED = 1,
+    SYNCED = 2,
 };
 
 class Node

@@ -1,18 +1,19 @@
 #pragma once
 
 #include "baseMessage.h"
-#include "task.h"
 
-
-class TaskMessage : public BaseMessage
+class ResultMessage : public BaseMessage
 {
 private:
-
+    uint32_t task_id;
+    
 public:
+    ResultMessage();
+    void init(uint32_t task_id);
+    
     virtual MessageType GetType() const;
-    // TODO: adpapt to Task
-
-    Task task;
     MessageBuffer Serialize() const;
     void Deserialize(MessageBuffer& buffer);
+    
+    uint32_t getId() { return task_id; }
 };

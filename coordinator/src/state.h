@@ -17,6 +17,10 @@ public:
 
     std::vector<std::thread> threads;
     std::mutex mtx_threads;
+
+    std::deque<std::pair<int, std::unique_ptr<BaseMessage>>> recvMessageQueue;
+    std::mutex mtx_recvQueue;
+    std::condition_variable cv_recvQueue;
     
     bool shouldQuit = false;
 };
