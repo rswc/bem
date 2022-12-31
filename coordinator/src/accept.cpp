@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <thread>
 #include <memory>
+#include <iostream>
 
 #include "accept.h"
 #include "node.h"
@@ -57,13 +58,15 @@ void acceptConnections(int port, State& state)
             error(1, errno, "accept failed");
         }
 
-        //TODO: Check if node is already registered
-        
-        // else
-        newNode->id = nextNodeId++;
-        
+        //TODO: Switch from using cout to maybe other log
+        if (state.nodeExists(nextNodeId)) {
+            std::cout << "Node with ID " << nextNodeId << " is already registered." << std::endl;
+            continue;
+        } 
+
+        int node_id = newNode->id = nextNodeId++;
         state.mtx_nodes.lock();
-        state.nodes.push_back(std::move(newNode));
+        state.nodes.insert({node_id, std::move(newNode)});
 
         int nidx = state.nodes.size() - 1;
 
