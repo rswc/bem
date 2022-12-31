@@ -110,4 +110,5 @@ int main (int argc, char* argv[])
     t_handler.join();
     // join all from state.threads
 
+    return 0;
 }
