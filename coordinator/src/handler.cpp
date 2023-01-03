@@ -5,15 +5,13 @@
 #include "messages.h"
 
 void handleReadyMessage(State &state, int node_id, ReadyMessage *msg) {
-    std::cout << "[WT]: Node " << node_id << " sent READY message! Setting node as REGISTERED.";
+    std::cout << "[WT]: Node " << node_id << " sent READY message!" << std::endl;
     state.mtx_nodes.lock();
-    for (auto& node : state.nodes)
-    {
-        if (node->id == node_id)
-        {
-            node->flags |= NodeFlags::REGISTERED;
-            break;
-        }
+    if (state.nodeExists(node_id)) {
+        state.nodes[node_id]->flags |= NodeFlags::REGISTERED;
+        std::cout << "[WT]: Set node " << node_id << " as REGISTERED." << std::endl;
+    } else {
+        std::cout << "[WT]: Node with ID " << node_id << " does not exist." << std::endl;
     }
     state.mtx_nodes.unlock();
 }
