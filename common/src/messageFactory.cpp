@@ -99,5 +99,5 @@ std::unique_ptr<BaseMessage> MessageFactory::Get()
 
 inline std::unique_ptr<BaseMessage> MessageFactory::MakeInvalid()
 {
-    return std::move(std::make_unique<InvalidMessage>());
+    return std::make_unique<InvalidMessage>();
 }
