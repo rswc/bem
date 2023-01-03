@@ -43,7 +43,7 @@ public:
     }
 
     template <typename T>
-    T GetAt(int index)
+    T GetAt(size_t index)
     {
         if (index + sizeof(T) <= internal.size())
             return *reinterpret_cast<T*>(&internal[index]);
@@ -52,21 +52,25 @@ public:
     }
 
     template <typename T>
-    void GetAt(T& dest, int index)
+    void GetAt(T& dest, size_t index)
     {
         if (index + sizeof(T) <= internal.size())
+        {
             memcpy(&dest, &internal[index], sizeof(T));
             return;
+        }
 
         throw std::invalid_argument("Buffer index out of range");
     }
 
     template <typename T>
-    void GetAt(T* dest, int index, int n)
+    void GetAt(T* dest, size_t index, int n)
     {
         if (index + n - 1 <= internal.size())
+        {
             memcpy(dest, &internal[index], n);
             return;
+        }
         
         throw std::invalid_argument("Buffer index out of range");
     }
