@@ -12,27 +12,27 @@ private:
     int position = 0;
 
 public:
-    inline size_t ByteBuffer::Length() const
+    inline size_t Length() const
     {
         return internal.size();
     }
 
-    inline size_t ByteBuffer::RemainingBytes() const
+    inline size_t RemainingBytes() const
     {
         return Length() - position;
     }
 
-    inline void ByteBuffer::Seek(int to)
+    inline void Seek(int to)
     {
         position = to;
     }
 
-    inline void ByteBuffer::Advance(int by)
+    inline void Advance(int by)
     {
         position += by;
     }
 
-    inline const char* ByteBuffer::Next() const
+    inline const char* Next() const
     {
         return &internal[position];
     }
