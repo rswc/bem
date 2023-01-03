@@ -20,6 +20,9 @@ public:
     };
 
     static const size_t HEADER_SIZE = sizeof(MessageType) + sizeof(size_t);
+    
+    static const size_t TYPE_OFFSET = 0;
+    static const size_t SIZE_OFFSET = 1;
 
     virtual MessageType GetType() const = 0;
 
