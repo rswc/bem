@@ -17,7 +17,7 @@ BaseMessage::MessageType HelloMessage::GetType() const
 BaseMessage::MessageBuffer HelloMessage::Serialize() const
 {
     MessageBuffer buf;
-    PutHeader(buf);
+    ReserveHeader(buf);
     buf.Put<uint8_t>(this->protocolVersion);
     buf.Put<uint8_t>(this->agentsCount);
     PutHeader(buf);

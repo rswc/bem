@@ -30,6 +30,7 @@ protected:
     typedef ByteBuffer MessageBuffer;
 
     void PutHeader(MessageBuffer& buffer) const;
+    void ReserveHeader(MessageBuffer& buffer) const;
     
 public:
     virtual MessageBuffer Serialize() const = 0;
