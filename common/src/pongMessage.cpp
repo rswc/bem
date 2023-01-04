@@ -11,6 +11,7 @@ BaseMessage::MessageType PongMessage::GetType() const
 BaseMessage::MessageBuffer PongMessage::Serialize() const
 {
     MessageBuffer buf;
+    ReserveHeader(buf);
     PutHeader(buf);
     buf.Seek(0);
     return buf;

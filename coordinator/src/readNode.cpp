@@ -25,14 +25,15 @@ void readNode(int sock, std::shared_ptr<Node> node, State& state)
         {
             factory.Fill(buf, len);
 
-            if (factory.IsReady())
+            for (auto& msg : factory.readyMessages)
             {
-                auto msg = factory.Get();
                 std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
                 state.recvMessageQueue.emplace_back(node->id, std::move(msg));
                 guard.unlock();
                 state.cv_recvQueue.notify_one();
             }
+
+            factory.FinishExtraction();
         }
     }
 }

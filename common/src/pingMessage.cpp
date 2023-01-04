@@ -11,6 +11,7 @@ BaseMessage::MessageType PingMessage::GetType() const
 BaseMessage::MessageBuffer PingMessage::Serialize() const
 {
     MessageBuffer buf;
+    ReserveHeader(buf);
     PutHeader(buf);
     buf.Seek(0);
     return buf;

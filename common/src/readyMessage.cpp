@@ -12,6 +12,7 @@ BaseMessage::MessageType ReadyMessage::GetType() const
 BaseMessage::MessageBuffer ReadyMessage::Serialize() const
 {
     MessageBuffer buf;
+    ReserveHeader(buf);
     PutHeader(buf);
     buf.Seek(0);
     return buf;
