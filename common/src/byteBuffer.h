@@ -12,11 +12,30 @@ private:
     int position = 0;
 
 public:
-    size_t Length() const;
-    size_t RemainingBytes() const;
-    void Seek(int to);
-    void Advance(int by);
-    const char* Next() const;
+    inline size_t Length() const
+    {
+        return internal.size();
+    }
+
+    inline size_t RemainingBytes() const
+    {
+        return Length() - position;
+    }
+
+    inline void Seek(int to)
+    {
+        position = to;
+    }
+
+    inline void Advance(int by)
+    {
+        position += by;
+    }
+
+    inline const char* Next() const
+    {
+        return &internal[position];
+    }
 
     template <typename T>
     void Put(const T& data)
@@ -43,7 +62,7 @@ public:
     }
 
     template <typename T>
-    T GetAt(int index)
+    T GetAt(size_t index)
     {
         if (index + sizeof(T) <= internal.size())
             return *reinterpret_cast<T*>(&internal[index]);
@@ -52,21 +71,25 @@ public:
     }
 
     template <typename T>
-    void GetAt(T& dest, int index)
+    void GetAt(T& dest, size_t index)
     {
         if (index + sizeof(T) <= internal.size())
+        {
             memcpy(&dest, &internal[index], sizeof(T));
             return;
+        }
 
         throw std::invalid_argument("Buffer index out of range");
     }
 
     template <typename T>
-    void GetAt(T* dest, int index, int n)
+    void GetAt(T* dest, size_t index, int n)
     {
         if (index + n - 1 <= internal.size())
+        {
             memcpy(dest, &internal[index], n);
             return;
+        }
         
         throw std::invalid_argument("Buffer index out of range");
     }

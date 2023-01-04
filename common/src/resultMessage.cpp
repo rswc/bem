@@ -16,7 +16,7 @@ BaseMessage::MessageType ResultMessage::GetType() const
 BaseMessage::MessageBuffer ResultMessage::Serialize() const
 {
     MessageBuffer buf;
-    PutHeader(buf);
+    ReserveHeader(buf);
     buf.Put<uint32_t>(this->task_id);
     PutHeader(buf);
     buf.Seek(0);

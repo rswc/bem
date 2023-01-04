@@ -9,10 +9,7 @@ BaseMessage::MessageBuffer TaskMessage::Serialize() const
 {
     MessageBuffer buf;
 
-    // HACK?: Reserve space. This should work
-    // so long as header size is independent
-    // of the message body. I think.
-    PutHeader(buf);
+    ReserveHeader(buf);
 
     task.Serialize(buf);
 

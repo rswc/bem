@@ -17,7 +17,7 @@ void MessageFactory::Fill(const char* data, size_t length)
         // Extract total message length from common message header
         
         // GetAt() does not affect buffer position
-        messageSize = buf->GetAt<size_t>(1);
+        messageSize = buf->GetAt<size_t>(BaseMessage::SIZE_OFFSET);
     }
     
     if (messageSize > 0 && buf->Length() >= messageSize)
@@ -31,7 +31,7 @@ void MessageFactory::Fill(const char* data, size_t length)
 // Try to interpret internal buffer as message
 void MessageFactory::Interpret()
 {
-    Type type = buf->GetAt<Type>(0);
+    Type type = buf->GetAt<Type>(BaseMessage::TYPE_OFFSET);
 
     buf->Seek(BaseMessage::HEADER_SIZE);
     
@@ -99,5 +99,5 @@ std::unique_ptr<BaseMessage> MessageFactory::Get()
 
 inline std::unique_ptr<BaseMessage> MessageFactory::MakeInvalid()
 {
-    return std::move(std::make_unique<InvalidMessage>());
+    return std::make_unique<InvalidMessage>();
 }

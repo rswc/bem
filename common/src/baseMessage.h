@@ -20,6 +20,9 @@ public:
     };
 
     static const size_t HEADER_SIZE = sizeof(MessageType) + sizeof(size_t);
+    
+    static const size_t TYPE_OFFSET = 0;
+    static const size_t SIZE_OFFSET = 1;
 
     virtual MessageType GetType() const = 0;
 
@@ -27,6 +30,7 @@ protected:
     typedef ByteBuffer MessageBuffer;
 
     void PutHeader(MessageBuffer& buffer) const;
+    void ReserveHeader(MessageBuffer& buffer) const;
     
 public:
     virtual MessageBuffer Serialize() const = 0;
