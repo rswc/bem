@@ -2,6 +2,8 @@
 
 #include "messages.h"
 
+#include <cassert>
+
 
 MessageFactory::MessageFactory()
 {
@@ -65,6 +67,8 @@ void MessageFactory::Interpret()
             case BaseMessage::MessageType::READY:
                 message = std::make_unique<ReadyMessage>();
                 break;
+            default: 
+                assert(0 && "Not implemented");
         }
 
         message->Deserialize(*buf);
