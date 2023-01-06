@@ -18,5 +18,5 @@ std::unique_ptr<BaseMessage> State::Receive()
 
     auto msg = std::move(recvMessageQueue.front());
     recvMessageQueue.pop_front();
-    return std::move(msg);
+    return msg;
 }
