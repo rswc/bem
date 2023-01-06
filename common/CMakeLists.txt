@@ -5,7 +5,6 @@ add_library(commonlib)
 target_sources(commonlib
     PRIVATE
         src/baseMessage.cpp
-        src/byteBuffer.cpp
         src/invalidMessage.cpp
         src/messageFactory.cpp
         src/task.cpp
