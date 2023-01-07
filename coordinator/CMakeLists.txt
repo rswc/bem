@@ -10,6 +10,7 @@ target_sources(coordinator
         src/readNode.cpp
         src/writeNode.cpp
         src/handler.cpp
+        src/config.cpp
 )
 
 # Link the "coordinator" target against the "common" library

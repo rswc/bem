@@ -7,13 +7,13 @@
 #include <unordered_map>
 
 #include "node.h"
+#include "config.h"
 
-class State
+struct State 
 {
-private:
-    
-public:
-    
+    CoordinatorConfig config;
+    std::mutex mtx_config;
+
     std::unordered_map<int, std::shared_ptr<Node>> nodes;
     std::mutex mtx_nodes;
 

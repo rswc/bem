@@ -14,4 +14,5 @@ target_sources(commonlib
         src/pongMessage.cpp
         src/readyMessage.cpp
         src/resultMessage.cpp 
+        src/game.cpp
 )

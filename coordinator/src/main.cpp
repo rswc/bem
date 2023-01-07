@@ -15,14 +15,28 @@
 #include "pingMessage.h"
 #include "helloMessage.h"
 
-int main (int argc, char* argv[])
-{
-    // load config
-    short port = 12345; //TODO: Move to config file
+#include "game.h"
+#include "json.hpp"
+#include "config.h"
+
+bool setup(State& state, std::string configpath) {
+    return load_config_from_file(configpath, state.config);
+}
+
+int main (int argc, char* argv[]) {
+
+    // TODO: load config path from argv
+    std::string configpath = "config.json";
 
     State state;
+    bool result = setup(state, configpath);
+    
+    if (!result) {
+        std::cout << "[!] Cannot load config from " << configpath << std::endl;
+        return 1;
+    }
 
-    std::thread t_acc(acceptConnections, port, std::ref(state));
+    std::thread t_acc(acceptConnections, state.config.port, std::ref(state));
     std::thread t_handler(handleCoordinatorMessages, std::ref(state));
     
     // Temporary scuff interface
