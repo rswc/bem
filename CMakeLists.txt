@@ -5,7 +5,7 @@ add_compile_options(-Wall -Wextra -pedantic)
 # Name of the project
 project(BEM)
 
-# Set the C++ standard to C++11
+# Set the C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
 
 # Add the "common" directory as a subdirectory
