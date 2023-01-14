@@ -3,12 +3,13 @@
 #include <string>
 #include <vector>
 
-#include "game.h"
+#include "gamelist.h"
 
 struct CoordinatorConfig {
     int port;
+    uint8_t protocol_version;
     std::string games_dir; 
-    std::vector<Game> games;
+    GameList gamelist;
 };
 
 void to_json(json& j, const CoordinatorConfig& c);

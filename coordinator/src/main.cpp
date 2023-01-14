@@ -15,11 +15,11 @@
 #include "pingMessage.h"
 #include "helloMessage.h"
 
-#include "game.h"
+#include "gamelist.h"
 #include "json.hpp"
 #include "config.h"
 
-bool setup(State& state, std::string configpath) {
+bool setup(State& state, const std::string& configpath) {
     return load_config_from_file(configpath, state.config);
 }
 
@@ -46,23 +46,7 @@ int main (int argc, char* argv[]) {
         std::cout << "> ";
         std::cin >> cmd;
 
-        if (cmd == "hello")
-        {
-            std::cin >> token;
-            int nid = std::stoi(token);
-
-            auto msg = std::make_unique<HelloMessage>();
-            msg->init(0, 0);
-
-            state.mtx_nodes.lock();
-            if (state.nodeExists(nid)) {
-                state.nodes[nid]->Send(std::move(msg));
-            } else {
-                std::cout << "Node with such ID does not exist" << std::endl;
-            }
-            state.mtx_nodes.unlock();
-        }
-        else if (cmd == "ping")
+        if (cmd == "ping")
         {
             std::cin >> token;
             int nid = std::stoi(token);
@@ -103,7 +87,7 @@ int main (int argc, char* argv[]) {
             }
             state.mtx_nodes.unlock();
         }
-        else if (cmd == "list")
+        else if (cmd == "nodes")
         {
             state.mtx_nodes.lock();
             for (auto& [node_id, node] : state.nodes)
@@ -114,6 +98,12 @@ int main (int argc, char* argv[]) {
             }
             state.mtx_nodes.unlock();
             std::cout.flush();
+        }
+        else if (cmd == "games") {
+            state.mtx_config.lock();
+            state.config.gamelist.print();
+            std::cout.flush();
+            state.mtx_config.unlock();
         }
         else if (cmd == "quit")
         {

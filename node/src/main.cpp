@@ -12,12 +12,13 @@
 #include "write.h"
 #include "read.h"
 #include "messages.h"
+#include "config.h"
 
-// TODO: load from config / add as arg params 
-int connectToServer() {
+int connectToServer(std::string host, short port) {
 	addrinfo *server, hints={.ai_flags=0, .ai_family=AF_INET, .ai_socktype=SOCK_STREAM};
 	
-    int res = getaddrinfo("localhost", "12345", &hints, &server); 
+    std::string service = std::to_string(port);
+    int res = getaddrinfo(host.c_str(), service.c_str(), &hints, &server); 
 	if (res || !server)
     {
         error(1, 0, "getaddrinfo: %s", gai_strerror(res));
@@ -43,31 +44,45 @@ int connectToServer() {
     return sock;
 }
 
-// TODO: read protocol version from config file
-bool syncWithServer(State &state) {
-    // protocol version 0, not synced (?)
-    std::cout << "Waiting for HELLO message from the server..." << std::endl;
+bool register_to_coordinator(State &state) {
+    std::cout << "Sending HELLO message to coordinator..." << std::endl;
+    state.mtx_config.lock();
+    auto hello_msg = std::make_unique<HelloMessage>();
+    hello_msg->init(state.config.protocol_version, HelloMessage::HelloFlag::NONE, state.config.gamelist);
+    state.Send(std::move(hello_msg));
+    state.mtx_config.unlock();
 
-    auto msg = state.Receive();
-    
-    if (msg->GetType() != BaseMessage::HELLO) {
-        std::cout << "Server returned message but its wrong." << std::endl;
-        return false;
-    }
+    bool sync_complete = false;
+    while (!sync_complete) {
+        std::cout << "Waiting for HELLO message from the coordinator..." << std::endl;
 
-    HelloMessage *msg_ptr = dynamic_cast<HelloMessage*>(msg.get());
-    
-    if (msg_ptr->getProtocolVersion() == 0) {
-        std::cout << "Server returned correct protocol version." << std::endl;
-        
-        auto ack_msg = std::make_unique<ReadyMessage>(); 
-        state.Send(std::move(ack_msg));
-        
-        return true;
-    } else {
-        std::cout << "Sync with server failed" << std::endl;
-        return false;
+        auto msg = state.Receive();
+        if (msg->GetType() != BaseMessage::HELLO) {
+            std::cout << "[!] Server returned message but its wrong." << std::endl;
+            return false;
+        }
+
+        HelloMessage *msg_ptr = dynamic_cast<HelloMessage*>(msg.get());
+        switch (msg_ptr->flag()) {
+            case HelloMessage::HelloFlag::REJECT: {
+                std::cerr << "[!] Server returned REJECT flag in hello response." << std::endl;
+                return false;
+            } break;
+            case HelloMessage::HelloFlag::ACCEPT: {
+                std::cerr << "Server returned ACCEPT flag in hello response." << std::endl;
+                sync_complete = true;
+            } break;
+            case HelloMessage::HelloFlag::SYNC: {
+                std::cerr << "Server returned SYNC flag in hello response." << std::endl;
+                sync_complete = true;
+            } break;
+            default: {
+                std::cerr << "[!] Server returned unknown flag in hello response." << std::endl;
+                return false;
+            } break;
+        }
     }
+    return true;
 }
 
 
@@ -91,19 +106,31 @@ void doTasks(State &state) {
     }
 }
 
-int main(int argc, char const *argv[])
-{
-    State state;
+bool setup(State& state, const std::string& configpath) {
+    // no mutex needed, we dont assume multihtreading here yet
+    return load_config_from_file(configpath, state.config);
+}
 
-    int sock = connectToServer();
+int main(int argc, char const *argv[]) {
+    // TODO: load config from argv
+    std::string configpath = "config.json";
+
+    State state;
+    bool setup_ok = setup(state, configpath);
+    if (!setup_ok) {
+        return 1;
+    }
+
+    int sock = connectToServer(state.config.host, state.config.port);
 
     // graceful exit?
     std::thread t_write(writeServer, sock, std::ref(state));
     std::thread t_read(readServer, sock, std::ref(state));
     std::thread t_task(doTasks, std::ref(state));
 
-    bool result = syncWithServer(state);
-    if (!result) {
+    bool register_ok = register_to_coordinator(state);
+    if (!register_ok) {
+        // TODO: graceful exit?
         return 1;
     }
 

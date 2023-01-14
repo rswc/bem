@@ -1,0 +1,30 @@
+{
+    "port" : 12345,
+    "host" : "localhost",
+    "protocol_version" : 2,
+    "games_dir" : "games",
+    "gamelist" : {
+        "games": [
+            {
+                "id" : 0,
+                "name": "migration",
+                "filename" : "migration.jar",
+                "hash" : "234234",
+                "agents": [
+                    {
+                        "id" : 0,
+                        "name" : "MCTSBot",
+                        "filename" : "MCTSBOTFINAL.jar",
+                        "hash" : "234234"
+                    },
+                    {
+                        "id" : 1,
+                        "name" : "RandomTestBot",
+                        "filename" : "RandomTestBot.jar",
+                        "hash" : "234234"
+                    }
+                ]
+            }
+        ] 
+    }
+}

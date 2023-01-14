@@ -9,6 +9,7 @@ target_sources(node
         src/state.cpp
         src/write.cpp
         src/read.cpp
+        src/config.cpp
 )
 
 target_include_directories(node
