@@ -29,6 +29,10 @@ void MessageFactory::Fill(const char* data, size_t length)
         else if (buf->Length() >= messageSize)
         {
             Interpret();
+        } 
+        else 
+        {
+            break;
         }
     }
 }
