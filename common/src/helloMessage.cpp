@@ -2,9 +2,10 @@
 
 #include <cassert>
 
-void HelloMessage::init(uint8_t protoVer = 0, uint8_t agents = 0) {
-    this->protocolVersion = protoVer;
-    this->agentsCount = agents;
+void HelloMessage::init(uint8_t protocol_version, char flag, const GameList& gamelist) {
+    m_proto_ver = protocol_version;
+    m_flag = flag;
+    m_gamelist = gamelist;
 }
 
 HelloMessage::HelloMessage() {}
@@ -18,8 +19,16 @@ BaseMessage::MessageBuffer HelloMessage::Serialize() const
 {
     MessageBuffer buf;
     ReserveHeader(buf);
-    buf.Put<uint8_t>(this->protocolVersion);
-    buf.Put<uint8_t>(this->agentsCount);
+
+    buf.Put<uint8_t>(m_proto_ver);
+    buf.Put<char>(m_flag);
+    
+    json j {{ "gamelist", this->m_gamelist }};
+    std::vector<uint8_t> serialized_games = json::to_bson(j);
+    
+    for (uint8_t byte : serialized_games) {
+        buf.Put<uint8_t>(byte);
+    }
     PutHeader(buf);
     buf.Seek(0);
     return buf;
@@ -27,6 +36,15 @@ BaseMessage::MessageBuffer HelloMessage::Serialize() const
 
 void HelloMessage::Deserialize(MessageBuffer& buffer)
 {
-    protocolVersion = buffer.Get<uint8_t>();
-    agentsCount = buffer.Get<uint8_t>();
+    m_proto_ver = buffer.Get<uint8_t>();
+    m_flag = buffer.Get<char>();
+
+    // TODO: optimize? instead of copying byte by byte
+    std::vector<uint8_t> bytes;
+    while (buffer.RemainingBytes()) {
+        bytes.push_back(buffer.Get<uint8_t>());
+    }
+    
+    json j = json::from_bson(bytes);
+    j.at("gamelist").get_to(m_gamelist);
 }

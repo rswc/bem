@@ -5,7 +5,6 @@ add_library(commonlib)
 target_sources(commonlib
     PRIVATE
         src/baseMessage.cpp
-        src/byteBuffer.cpp
         src/invalidMessage.cpp
         src/messageFactory.cpp
         src/task.cpp
@@ -15,4 +14,5 @@ target_sources(commonlib
         src/pongMessage.cpp
         src/readyMessage.cpp
         src/resultMessage.cpp 
+        src/gamelist.cpp
 )

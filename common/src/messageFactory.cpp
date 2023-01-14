@@ -2,6 +2,8 @@
 
 #include "messages.h"
 
+#include <cassert>
+
 
 MessageFactory::MessageFactory()
 {
@@ -27,6 +29,10 @@ void MessageFactory::Fill(const char* data, size_t length)
         else if (buf->Length() >= messageSize)
         {
             Interpret();
+        } 
+        else 
+        {
+            break;
         }
     }
 }
@@ -65,6 +71,8 @@ void MessageFactory::Interpret()
             case BaseMessage::MessageType::READY:
                 message = std::make_unique<ReadyMessage>();
                 break;
+            default: 
+                assert(0 && "Not implemented");
         }
 
         message->Deserialize(*buf);

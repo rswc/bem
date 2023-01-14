@@ -25,7 +25,36 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
     std::cout << "[WT]: Node " << node_id << " sent RESULT for task id: " << task_id << std::endl;
 }
 
+void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
+    std::cout << "[WT]: Node " << node_id << " sent HELLO message!" << std::endl;
+
+    msg->gamelist().print();
+    std::cout.flush();
+    
+    state.mtx_nodes.lock();
+
+    if (state.nodeExists(node_id)) {
+        state.nodes[node_id]->flags |= NodeFlags::REGISTERED;
+        std::cout << "[WT]: Set node " << node_id << " as REGISTERED. Sending Hello Response" << std::endl;
+        state.nodes[node_id]->gamelist = msg->gamelist(); 
+
+        GameList empty_gl;
+        auto hello_msg = std::make_unique<HelloMessage>();
+        // For now accept every incoming valid message
+        hello_msg->init(state.config.protocol_version, HelloMessage::HelloFlag::ACCEPT, empty_gl);
+        state.nodes[node_id]->Send(std::move(hello_msg));
+
+    } else {
+        std::cout << "[WT]: Node with ID " << node_id << " does not exist." << std::endl;
+    }
+    state.mtx_nodes.unlock();
+    
+    
+
+}
+
 void handleCoordinatorMessages(State &state) {
+    std::cout << "STarter handler!" <<  std::endl;
     while (!state.shouldQuit) {
 
         std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
@@ -43,9 +72,9 @@ void handleCoordinatorMessages(State &state) {
                 ResultMessage *msg_ptr = dynamic_cast<ResultMessage*>(msg.get());
                 handleResultMessage(state, node_id, msg_ptr); 
             } break;
-            case BaseMessage::READY: {
-                ReadyMessage *msg_ptr = dynamic_cast<ReadyMessage*>(msg.get());
-                handleReadyMessage(state, node_id, msg_ptr); 
+            case BaseMessage::HELLO: {
+                HelloMessage *msg_ptr = dynamic_cast<HelloMessage*>(msg.get());
+                handleHelloMessage(state, node_id, msg_ptr); 
             } break;
             case BaseMessage::PING:  {
                 PongMessage *msg_ptr = dynamic_cast<PongMessage*>(msg.get());

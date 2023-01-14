@@ -24,7 +24,6 @@ void readNode(int sock, std::shared_ptr<Node> node, State& state)
         if (len > 0)
         {
             factory.Fill(buf, len);
-
             for (auto& msg : factory.readyMessages)
             {
                 std::unique_lock<std::mutex> guard(state.mtx_recvQueue);

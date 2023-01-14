@@ -9,6 +9,7 @@
 
 #include "task.h"
 #include "baseMessage.h"
+#include "gamelist.h"
 
 
 class State;
@@ -30,6 +31,7 @@ private:
     std::condition_variable cv_msgQueue;
 
 public:
+    GameList gamelist;
     int id = -1;
     sockaddr_in addr{0};
     socklen_t addrSize = sizeof(addr);

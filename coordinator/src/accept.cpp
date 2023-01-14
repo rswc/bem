@@ -65,23 +65,18 @@ void acceptConnections(int port, State& state)
         } 
 
         int node_id = newNode->id = nextNodeId++;
+
         state.mtx_nodes.lock();
         state.nodes.insert({node_id, std::move(newNode)});
-
         int nidx = state.nodes.size() - 1;
-
-        // spawn threads
         std::thread t_rdnode(readNode, nodeSocket, state.nodes[nidx], std::ref(state));
         std::thread t_wrnode(writeNode, nodeSocket, state.nodes[nidx], std::ref(state));
-
         state.mtx_nodes.unlock();
 
 
         state.mtx_threads.lock();
-
         state.threads.push_back(std::move(t_rdnode));
         state.threads.push_back(std::move(t_wrnode));
-
         state.mtx_threads.unlock();
     }
 
