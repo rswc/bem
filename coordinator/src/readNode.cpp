@@ -7,7 +7,6 @@
 #include "messageFactory.h"
 #include "taskMessage.h"
 
-
 void readNode(int sock, std::shared_ptr<Node> node, State& state)
 {
     char buf[32];

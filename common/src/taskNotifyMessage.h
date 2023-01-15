@@ -3,15 +3,12 @@
 #include "baseMessage.h"
 #include "task.h"
 
-
-class TaskMessage : public BaseMessage
+class TaskNotifyMessage : public BaseMessage
 {
-private:
 public:
+    task_id_t task_id;
+    TaskStatus task_status;
     virtual MessageType GetType() const;
-    // TODO: adpapt to Task
-
-    Task task;
     MessageBuffer Serialize() const;
     void Deserialize(MessageBuffer& buffer);
 };

@@ -4,6 +4,8 @@
 #include <error.h>
 #include <string>
 
+const node_id_t NODE_ID_NONE = 0u;
+const node_id_t NODE_ID_FIRST = 1u;
 
 void Node::AssignTask(std::shared_ptr<Task> task)
 {

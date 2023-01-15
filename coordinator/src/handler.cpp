@@ -1,20 +1,8 @@
 #include <iostream>
 
 #include "handler.h"
-
 #include "messages.h"
 
-void handleReadyMessage(State &state, int node_id, ReadyMessage *msg) {
-    std::cout << "[WT]: Node " << node_id << " sent READY message!" << std::endl;
-    state.mtx_nodes.lock();
-    if (state.nodeExists(node_id)) {
-        state.nodes[node_id]->flags |= NodeFlags::REGISTERED;
-        std::cout << "[WT]: Set node " << node_id << " as REGISTERED." << std::endl;
-    } else {
-        std::cout << "[WT]: Node with ID " << node_id << " does not exist." << std::endl;
-    }
-    state.mtx_nodes.unlock();
-}
 
 void handlePongMessage(State &state, int node_id, PongMessage *msg) {
     std::cout << "[WT]: Node " << node_id << " sent PONG message!";
@@ -34,7 +22,7 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
     state.mtx_nodes.lock();
 
     if (state.nodeExists(node_id)) {
-        state.nodes[node_id]->flags |= NodeFlags::REGISTERED;
+        state.nodes[node_id]->mark_registered();
         std::cout << "[WT]: Set node " << node_id << " as REGISTERED. Sending Hello Response" << std::endl;
         state.nodes[node_id]->gamelist = msg->gamelist(); 
 
@@ -48,13 +36,9 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
         std::cout << "[WT]: Node with ID " << node_id << " does not exist." << std::endl;
     }
     state.mtx_nodes.unlock();
-    
-    
-
 }
 
 void handleCoordinatorMessages(State &state) {
-    std::cout << "STarter handler!" <<  std::endl;
     while (!state.shouldQuit) {
 
         std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
@@ -80,6 +64,11 @@ void handleCoordinatorMessages(State &state) {
                 PongMessage *msg_ptr = dynamic_cast<PongMessage*>(msg.get());
                 handlePongMessage(state, node_id, msg_ptr);
             } break;
+            case BaseMessage::TASK_NOTIFY: {
+            }
+            default: {
+                
+            }
         }
     }
 }

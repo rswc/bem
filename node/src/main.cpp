@@ -113,7 +113,7 @@ bool setup(State& state, const std::string& configpath) {
 
 int main(int argc, char const *argv[]) {
     // TODO: load config from argv
-    std::string configpath = "config.json";
+    std::string configpath = "node.json";
 
     State state;
     bool setup_ok = setup(state, configpath);

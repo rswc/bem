@@ -13,6 +13,7 @@ public:
         READY,  // Node sends sync proof
         SYNC,   // Node can request assets
         TASK,   // 
+        TASK_NOTIFY,
         RESULT,
         PING,   // Heartbeat from server
         PONG,   // Result
