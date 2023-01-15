@@ -39,6 +39,7 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
 }
 
 void handleCoordinatorMessages(State &state) {
+    std::cout << "STarter handler!" <<  std::endl;
     while (!state.shouldQuit) {
 
         std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
