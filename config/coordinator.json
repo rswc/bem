@@ -1,23 +1,23 @@
 {
     "port" : 12345,
-    "protocol_version" : 2,
+    "protocol_version" : 3,
     "games_dir" : "games",
     "gamelist" : {
         "games": [
             {
-                "id" : 0,
+                "id" : 1,
                 "name": "migration",
                 "filename" : "migration.jar",
                 "hash" : "234234",
                 "agents": [
                     {
-                        "id" : 0,
+                        "id" : 1,
                         "name" : "MCTSBot",
                         "filename" : "MCTSBOTFINAL.jar",
                         "hash" : "234234"
                     },
                     {
-                        "id" : 1,
+                        "id" : 2,
                         "name" : "RandomTestBot",
                         "filename" : "RandomTestBot.jar",
                         "hash" : "234234"
