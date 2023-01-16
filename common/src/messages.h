@@ -7,3 +7,4 @@
 #include "pongMessage.h"
 #include "helloMessage.h"
 #include "readyMessage.h"
+#include "taskNotifyMessage.h"
