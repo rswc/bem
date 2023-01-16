@@ -1,6 +1,7 @@
 #include "config.h"
 #include "json.hpp"
 
+
 void to_json(json& j, const NodeConfig& c) {
     j = json { 
         { "host", c.host }, 
@@ -19,7 +20,7 @@ void from_json(const json& j, NodeConfig& c) {
     j.at("gamelist").get_to(c.gamelist);
 }
 
-bool load_config_from_file(const std::string& configpath, NodeConfig& config) {
+bool load_node_config_from_file(NodeConfig& config, const std::string& configpath) {
     if (!std::filesystem::exists(configpath)) {
         std::cout << "[!] Cannot load node config: path <" << configpath << "> does not exist." << std::endl;
         return false;
