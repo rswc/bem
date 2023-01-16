@@ -15,4 +15,5 @@ target_sources(commonlib
         src/readyMessage.cpp
         src/resultMessage.cpp 
         src/gamelist.cpp
+        src/taskNotifyMessage.cpp
 )

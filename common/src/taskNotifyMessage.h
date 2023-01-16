@@ -6,6 +6,8 @@
 class TaskNotifyMessage : public BaseMessage
 {
 public:
+
+    TaskNotifyMessage();
     task_id_t task_id;
     TaskStatus task_status;
     virtual MessageType GetType() const;

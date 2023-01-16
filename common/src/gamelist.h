@@ -11,6 +11,8 @@
 using json = nlohmann::json;
 
 using games_id_t = uint64_t;
+extern const games_id_t GAME_ID_NONE;
+extern const games_id_t GAME_ID_FIRST;
 
 struct Agent {
     games_id_t agent_id;

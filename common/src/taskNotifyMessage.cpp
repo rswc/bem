@@ -1,5 +1,7 @@
 #include "taskNotifyMessage.h"
 
+TaskNotifyMessage::TaskNotifyMessage() {}
+
 BaseMessage::MessageType TaskNotifyMessage::GetType() const
 {
     return TASK_NOTIFY;

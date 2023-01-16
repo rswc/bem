@@ -71,6 +71,9 @@ void MessageFactory::Interpret()
             case BaseMessage::MessageType::READY:
                 message = std::make_unique<ReadyMessage>();
                 break;
+            case BaseMessage::MessageType::TASK_NOTIFY:
+                message = std::make_unique<TaskNotifyMessage>();
+                break;
             default: 
                 assert(0 && "Not implemented");
         }

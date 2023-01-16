@@ -29,13 +29,13 @@ struct Task
    
     void init(task_id_t id, games_id_t game_id, games_id_t agent1, games_id_t agent2, uint32_t move_limit_ms,  
         uint32_t games, uint16_t board_size) {
-        id = id;
-        game_id = game_id;
-        agent1 = agent1;
-        agent2 = agent2;
-        move_limit_ms = move_limit_ms;
-        games = games;
-        board_size = board_size;
+        this->id = id;
+        this->game_id = game_id;
+        this->agent1 = agent1;
+        this->agent2 = agent2;
+        this->move_limit_ms = move_limit_ms;
+        this->games = games;
+        this->board_size = board_size;
     }
 
     ByteBuffer Serialize(ByteBuffer& buffer) const;

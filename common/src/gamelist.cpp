@@ -9,6 +9,9 @@
 
 using json = nlohmann::json;
 
+const games_id_t GAME_ID_NONE = 0u;
+const games_id_t GAME_ID_FIRST = 1u;
+
 void to_json(json &j, const Agent& a) {
     j = json{ 
         { "id", a.agent_id, }, 
