@@ -12,8 +12,8 @@
 #include "taskMessage.h"
 #include "handler.h"
 
-#include "pingMessage.h"
-#include "helloMessage.h"
+#include "messages.h"
+
 
 #include "gamelist.h"
 #include "json.hpp"
@@ -25,10 +25,16 @@ bool setup(State& state, const std::string& configpath) {
 
 std::vector<node_id_t> get_eligible_nodes_for_task(State& state, const Task& task) {
     std::vector<node_id_t> eligible_ids;
+    
+    std::cout << "Given task: " << task.game_id << ", " << task.agent1 << ", " << task.agent2 << std::endl;
     state.mtx_nodes.lock();
     for (const auto&[node_id, node] : state.nodes) {
+        
+        std::cout << "Hello: " << node_id << ", " << node->is_registered() << ", " << node->gamelist.contains_game(task.game_id) << std::endl;
+        
         if (!node->is_registered()) continue;
         if (!node->gamelist.contains_game(task.game_id)) continue;
+        
         
         if (node->gamelist.contains_agent(task.game_id, task.agent1) 
             && node->gamelist.contains_agent(task.game_id, task.agent2)) {
@@ -81,6 +87,25 @@ int main (int argc, char* argv[]) {
             }
             state.mtx_nodes.unlock();
         }
+        else if (cmd == "notify") {
+            int nid;
+            std::cin >> nid;
+
+            auto msg = std::make_unique<TaskNotifyMessage>();
+            msg->task_id = TASK_ID_NONE;
+            msg->task_status = TS_QUESTION;
+
+            state.mtx_nodes.lock();
+            if (state.nodeExists(nid) && state.nodes[nid]->is_registered()) {
+                state.nodes[nid]->mark_request();
+                state.nodes[nid]->Send(std::move(msg));
+            } else {
+                std::cout << "Node with such ID does not exist or is not registered." << std::endl;
+            }
+            state.mtx_nodes.unlock();
+            
+            
+        }
         else if (cmd == "task")
         {
             // TODO: track tasks, make possible to cancel one 
@@ -102,7 +127,10 @@ int main (int argc, char* argv[]) {
             std::cout << "]" << std::endl;
             
             if (node_ids.empty()) {
-                std::cout << "[!] No eligible nodes found. Cannot send task.";
+                std::cout << "[!] No eligible nodes found. Cannot send task." << std::endl;
+                std::cout << "GameID: " << gid << std::endl;
+                std::cout << "AG1: " << ag1 << std::endl;
+                std::cout << "AG2: " << ag2 << std::endl;
             } else { 
                 size_t n_nodes = node_ids.size();
                 std::vector<uint32_t> n_games(n_nodes, games / n_nodes);
@@ -113,6 +141,8 @@ int main (int argc, char* argv[]) {
                 std::cout << "Splitting tasks to eligible nodes:" << std::endl;
                 state.mtx_nodes.lock();
                 for (size_t i = 0; i < n_nodes; i++) {
+                    // maybe add min split value?
+                    if (n_games[i] == 0) continue;
                     std::cout << "[" << node_ids[i] << "] -> " << n_games[i] << std::endl;
                     auto msg = std::make_unique<TaskMessage>();
                     task.id = next_task_id++;
@@ -129,7 +159,7 @@ int main (int argc, char* argv[]) {
             {
                 assert(node_id == node->id);
                 std::cout << "[" << node_id << "] " << inet_ntoa(node->addr.sin_addr)
-                    << ':' << ntohs(node->addr.sin_port) << " flag<" << node->flags << ">\n";
+                    << ':' << ntohs(node->addr.sin_port) << " flag<" << (node->is_registered() ? 'R' : 'N') << ">\n";
             }
             state.mtx_nodes.unlock();
             std::cout.flush();

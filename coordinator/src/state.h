@@ -14,13 +14,13 @@ struct State
     CoordinatorConfig config;
     std::mutex mtx_config;
 
-    std::unordered_map<int, std::shared_ptr<Node>> nodes;
+    std::unordered_map<node_id_t, std::shared_ptr<Node>> nodes;
     std::mutex mtx_nodes;
 
     std::vector<std::thread> threads;
     std::mutex mtx_threads;
 
-    std::deque<std::pair<int, std::unique_ptr<BaseMessage>>> recvMessageQueue;
+    std::deque<std::pair<node_id_t, std::unique_ptr<BaseMessage>>> recvMessageQueue;
     std::mutex mtx_recvQueue;
     std::condition_variable cv_recvQueue;
     

@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <vector>
 #include <deque>
+#include <chrono>
 
 #include "task.h"
 #include "baseMessage.h"
@@ -41,6 +42,8 @@ public:
     node_id_t id = NODE_ID_NONE;
     sockaddr_in addr{0};
     socklen_t addrSize = sizeof(addr);
+    
+    std::chrono::time_point<std::chrono::system_clock> response_ts, request_ts; 
 
     node_flag_t flags = NodeFlag::FLAGS_CLEAR;
     
@@ -51,5 +54,20 @@ public:
 
     bool is_registered() const { return (flags & NodeFlag::REGISTERED); } 
     void mark_registered() { flags |= NodeFlag::REGISTERED; }
+    
+    void mark_request() { request_ts = std::chrono::system_clock::now(); }  
+    void mark_response() { response_ts = std::chrono::system_clock::now(); }
+    double reply_time() const { 
+        std::chrono::duration<double> elapsed = response_ts - request_ts;
+        return elapsed.count();
+    }
+    double time_from_request() const { 
+        std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - request_ts;
+        return elapsed.count();
+    }
+    double time_from_response() const { 
+        std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - response_ts;
+        return elapsed.count();
+    }
 };
 
