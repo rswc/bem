@@ -132,7 +132,7 @@ int main (int argc, char* argv[]) {
             } else { 
                 size_t n_nodes = node_ids.size();
                 std::vector<uint32_t> n_games(n_nodes, games / n_nodes);
-                // first one is ceil() because otherwise we loose one game 
+                // first one is ceil() because otherwise we lose one game 
                 n_games[0] = (games + n_nodes - 1) / n_nodes;
                 
 
