@@ -26,30 +26,6 @@ bool setup(State& state, const std::string& configpath) {
     return load_config_from_file(state.config, configpath);
 }
 
-std::vector<node_id_t> get_eligible_nodes_for_task(State& state, const Task& task) {
-    std::vector<node_id_t> eligible_ids;
-    
-    std::cout << "Given task: " << task.game_id << ", " << task.agent1 << ", " << task.agent2 << std::endl;
-    state.mtx_nodes.lock();
-    for (const auto&[node_id, node] : state.nodes) {
-        
-        std::cout << "Hello: " << node_id << ", " << node->is_registered() << ", " << node->gamelist.contains_game(task.game_id) << std::endl;
-        
-        if (!node->is_registered()) continue;
-        if (!node->gamelist.contains_game(task.game_id)) continue;
-        
-        
-        if (node->gamelist.contains_agent(task.game_id, task.agent1) 
-            && node->gamelist.contains_agent(task.game_id, task.agent2)) {
-        
-            eligible_ids.push_back(node_id);
-        }
-        
-    }
-    state.mtx_nodes.unlock();
-    return eligible_ids;
-}
-
 int main (int argc, char* argv[]) {
 
     // TODO: load config path from argv
@@ -118,6 +94,7 @@ int main (int argc, char* argv[]) {
 
             Task task;
             task.init(TASK_ID_NONE, gid, ag1, ag2, board_size, move_limit_ms, games);
+
             auto node_ids = get_eligible_nodes_for_task(state, task);
 
             std::cout << "Node ids for given task: [";
@@ -139,17 +116,28 @@ int main (int argc, char* argv[]) {
                 
 
                 std::cout << "Splitting tasks to eligible nodes:" << std::endl;
+                
                 state.mtx_nodes.lock();
+                state.mtx_tasks.lock();
+
                 for (size_t i = 0; i < n_nodes; i++) {
                     // maybe add min split value?
                     if (n_games[i] == 0) continue;
+                
                     std::cout << "[" << node_ids[i] << "] -> " << n_games[i] << std::endl;
-                    auto msg = std::make_unique<TaskMessage>();
-                    task.id = next_task_id++;
-                    msg->task = task;
-                    state.nodes[node_ids[i]]->Send(std::move(msg));
+
+                    Task tt = task;
+                    tt.id = next_task_id++;
+                    tt.games = n_games[i];
+
+                    auto ttp = std::make_shared<Task>(task);
+
+                    state.tasks.insert({ttp->id, ttp});
+                    state.nodes[node_ids[i]]->AssignTask(ttp);
                 }
+
                 state.mtx_nodes.unlock();
+                state.mtx_tasks.unlock();
             }
         }
         else if (cmd == "nodes")

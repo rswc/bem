@@ -114,7 +114,7 @@ void wait_for_instructions_in_loop(State& state) {
                         if (--sillyCounter > 0) // DEBUG: simulate connection break
                             send_message(state, std::move(tn_msg));
                     } break;
-                    case TaskStatus::TS_CANCELED: {
+                    case TaskStatus::TS_CANCELLED: {
                         assert(0 && "<Panic>");
                     } break;
                     default: {
