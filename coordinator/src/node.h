@@ -22,8 +22,8 @@ using node_flag_t = uint8_t;
 enum NodeFlag : node_flag_t {
     FLAGS_CLEAR = 0,
     REGISTERED = 1u << 0,
-    SUSPICIOUS = 1u << 1,
-    DISCONNECTED = 1u << 2,
+    CONN_PROBLEMS = 1u << 1,
+    CONN_BROKEN = 1u << 2,
     FLAGS_N_BITS = 3,
 };
 
@@ -71,6 +71,9 @@ public:
     double time_from_response() const { 
         std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - response_ts;
         return elapsed.count();
+    }
+    bool awaiting_response() const {
+        return response_ts < request_ts;
     }
 };
 

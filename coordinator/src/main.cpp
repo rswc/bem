@@ -11,6 +11,7 @@
 #include "state.h"
 #include "taskMessage.h"
 #include "handler.h"
+#include "maintenance.h"
 
 #include "messages.h"
 
@@ -64,6 +65,7 @@ int main (int argc, char* argv[]) {
 
     std::thread t_acc(acceptConnections, state.config.port, std::ref(state));
     std::thread t_handler(handleCoordinatorMessages, std::ref(state));
+    std::thread t_maintenance(doMaintenance, std::ref(state));
     
     // Temporary scuff interface
     std::string cmd, token;
@@ -157,7 +159,9 @@ int main (int argc, char* argv[]) {
             {
                 assert(node_id == node->id);
                 std::cout << "[" << node_id << "] " << inet_ntoa(node->addr.sin_addr)
-                    << ':' << ntohs(node->addr.sin_port) << " flag<" << (node->is_registered() ? 'R' : 'N') << ">\n";
+                    << ':' << ntohs(node->addr.sin_port) << " flags<" << (node->is_registered() ? 'R' : 'N')
+                    << ((node->flags & NodeFlag::CONN_PROBLEMS) ? 'P' : '.')
+                    << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">\n";
             }
             state.mtx_nodes.unlock();
             std::cout.flush();
@@ -180,6 +184,7 @@ int main (int argc, char* argv[]) {
 
     t_acc.join();
     t_handler.join();
+    t_maintenance.join();
     // join all from state.threads
 
     return 0;
