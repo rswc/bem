@@ -14,7 +14,8 @@ enum TaskStatus : int8_t {
     TS_NONE = 0,
     TS_QUESTION = 1,
     TS_RUNNING = 2,
-    TS_CANCELED = 3,
+    TS_CANCELLED = 3,
+    TS_DONE = 4
 };
 
 struct Task
@@ -26,6 +27,7 @@ struct Task
     uint32_t board_size = 8u;
     uint32_t move_limit_ms = 20000;
     uint32_t games = 1u;
+    TaskStatus status = TS_NONE;
    
     void init(task_id_t id, games_id_t game_id, games_id_t agent1, games_id_t agent2, uint32_t board_size, uint32_t move_limit_ms,  
         uint32_t games) {

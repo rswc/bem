@@ -22,10 +22,12 @@ using node_flag_t = uint8_t;
 enum NodeFlag : node_flag_t {
     FLAGS_CLEAR = 0,
     REGISTERED = 1u << 0,
-    SUSPICIOUS = 1u << 1,
-    DISCONNECTED = 1u << 2,
+    CONN_PROBLEMS = 1u << 1,
+    CONN_BROKEN = 1u << 2,
     FLAGS_N_BITS = 3,
 };
+
+std::vector<node_id_t> get_eligible_nodes_for_task(State& state, const Task& task);
 
 class Node
 {
@@ -33,13 +35,13 @@ class Node
     friend void readNode(int sock, std::shared_ptr<Node> node, State& state);
 
 private:
-    std::vector<std::shared_ptr<Task>> tasks;
     std::mutex mtx_msgQueue;
     std::condition_variable cv_msgQueue;
     
 
 public:
 
+    std::vector<std::shared_ptr<Task>> tasks;
     int socket;
     GameList gamelist;
     node_id_t id = NODE_ID_NONE;
@@ -53,6 +55,7 @@ public:
     std::deque<std::unique_ptr<BaseMessage>> messageQueue;
 
     void AssignTask(std::shared_ptr<Task> task);
+    void UnassignTask(std::shared_ptr<Task> task);
     void Send(std::unique_ptr<BaseMessage> message);
 
     bool is_registered() const { return (flags & NodeFlag::REGISTERED); } 
@@ -71,6 +74,9 @@ public:
     double time_from_response() const { 
         std::chrono::duration<double> elapsed = std::chrono::system_clock::now() - response_ts;
         return elapsed.count();
+    }
+    bool awaiting_response() const {
+        return response_ts < request_ts;
     }
 };
 
