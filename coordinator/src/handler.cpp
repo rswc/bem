@@ -8,14 +8,18 @@ void handlePongMessage(State &state, int node_id, PongMessage *msg) {
 }
 
 void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
-    task_id_t task_id = msg->getId();
+    task_id_t task_id = msg->get_task_id();
+    Result res = msg->get_result();
     std::cout << "[WT]: Node " << node_id << " sent RESULT for task id: " << task_id << std::endl;
+    std::cout << "- " << res.games << " games played." << std::endl;
+    std::cout << "- " << res.win_agent1 << " games won by agent1" << std::endl;
+    std::cout << "- " << res.win_agent2 << " games won by agent2" << std::endl;
+    std::cout << "- " << res.games - res.win_agent1 - res.win_agent2 << " draws." << std::endl;
 }
 
 void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
     std::cout << "[WT]: Node " << node_id << " sent HELLO message!" << std::endl;
 
-    
     state.mtx_nodes.lock();
 
     if (state.nodeExists(node_id)) {
