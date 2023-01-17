@@ -22,12 +22,11 @@ void execute_tasks_in_loop(State &state) {
         guard.unlock();
         
         state.current_task_id = task.id;
+        Result result = execute_task(state, task);
+        std::cout << "[ET]: Task with id " << task.id << ", done. Sending result." << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::seconds(10));
-        std::cout << "[DT]: Task with id " << task.id << ", done. Sending result" << std::endl;
-        
         auto result_msg = std::make_unique<ResultMessage>();
-        result_msg->init(task.id);
+        result_msg->init(task.id, result);
         send_message(state, std::move(result_msg));
         state.current_task_id = TASK_ID_NONE;
     }
@@ -35,6 +34,88 @@ void execute_tasks_in_loop(State &state) {
     terminate_program(state);
 }
 
+std::string prepare_command(const std::string& games_dir, const std::string& game_name, const std::string& game_jar, 
+    const std::string& agent1_jar, const std::string& agent2_jar,  
+    uint32_t move_limit_ms, uint32_t board_size) {
 
-bool check_winner(State &state, const Game& game, const Agent& agent1, const Agent& agent2) {
+    std::stringstream ss;
+    ss << "java -jar";
+    ss << " " << games_dir << "/" << game_jar;
+    ss << " " << games_dir << "/" << agent1_jar;
+    ss << " " << games_dir << "/" << agent2_jar;
+    ss << " " << game_name;
+    ss << " " << board_size;
+    ss << " " << move_limit_ms;
+    // ignore stderr
+    ss << " 2> /dev/null";
+
+    return ss.str();
+}
+
+Result execute_task(State& state, const Task& task) {
+    
+    state.mtx_config.lock();
+    std::string games_dir = state.config.games_dir;
+    std::string game_name = state.config.gamelist.get_game_name(task.game_id);
+    std::string game_jar = state.config.gamelist.get_game_relative_jar_path(task.game_id);
+    std::string ag1_jar = state.config.gamelist.get_agent_relative_jar_path(task.game_id, task.agent1);
+    std::string ag2_jar = state.config.gamelist.get_agent_relative_jar_path(task.game_id, task.agent2);
+    state.mtx_config.unlock();
+    
+    std::string game_command = prepare_command(games_dir, game_name, game_jar, ag1_jar, ag2_jar, task.move_limit_ms, task.board_size);
+    
+    std::cout << "[ET]: running: " << game_command << std::endl;
+    Result result;
+    
+    for (uint32_t i = 0u; i < task.games; i++) {
+        int winner = 0; // 1 if first, 2 if second, 0 if draft
+        bool exited_safely = launch_subprocess(state, game_command, winner);
+        if (!exited_safely) continue;
+        
+        result.games++;
+        if (winner & 1) result.win_agent1++;
+        if (winner & 2) result.win_agent2++;
+    }
+
+    return result;
+}
+
+bool launch_subprocess(State& state, const std::string& command, int& winner) {
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) return false;
+    
+    char buffer[128];
+    std::string result = "";
+    while(!feof(pipe) && !state.should_quit) {
+    	if(fgets(buffer, 128, pipe) != NULL)
+    		result += buffer;
+    }
+
+    pclose(pipe);
+    std::cout << "[EJ]: Popen printed " << result.size() << " characters." << std::endl;
+    
+    std::stringstream ss(result);
+    std::cout << "[EJ]: " << ss.str() << std::endl;
+    
+    std::string agent1_name;
+    std::string agent2_name;
+    std::string win_prompt;
+    
+    std::getline(ss, agent1_name, ';');
+    std::getline(ss, agent2_name, ';');
+    std::getline(ss, win_prompt, ';');
+
+    std::cout << "agent1: " << agent1_name << std::endl;
+    std::cout << "agent2: " << agent2_name << std::endl;
+    std::cout << "win_prompt: " << win_prompt << std::endl;
+
+    if (win_prompt == "\"PLAYER1\"") {
+        winner = 1;
+    } else if (win_prompt == "\"PLAYER2\"") {
+        winner = 2;
+    } else {
+        winner = 0;
+    }
+
+    return true;
 }

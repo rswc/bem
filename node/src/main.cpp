@@ -1,3 +1,11 @@
+#include "messages.h"
+#include "state.h"
+#include "config.h"
+#include "protocol.h"
+#include "communication.h"
+#include "execute.h"
+#include "graceful.h"
+
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -7,38 +15,6 @@
 #include <thread>
 #include <iostream>
 #include <chrono>
-
-#include "messages.h"
-
-#include "state.h"
-#include "config.h"
-#include "protocol.h"
-#include "communication.h"
-#include "execute.h"
-#include "graceful.h"
-
-
-void doTasks(State &state) {
-    while (true) {
-        std::unique_lock<std::mutex> guard(state.mtx_taskQueue);
-        state.cv_taskQueue.wait(guard, [&]{
-            return !state.taskQueue.empty();
-        });
-        Task task = state.taskQueue.front();
-        state.taskQueue.pop_front();
-        guard.unlock();
-        
-        state.current_task_id = task.id;
-        std::cout << "[DT]: Task with id " << task.id << ", received. Sleeping for 10 seconds" << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(10));
-        std::cout << "[DT]: Task with id " << task.id << ", done. Sending result" << std::endl;
-        
-        auto result_msg = std::make_unique<ResultMessage>();
-        result_msg->init(task.id);
-        send_message(state, std::move(result_msg));
-        state.current_task_id = TASK_ID_NONE;
-    }
-}
 
 int main(int argc, char const *argv[]) {
     std::string configpath = std::string(DEFAULT_CONFIG_FILENAME);
@@ -55,14 +31,13 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    // set socket as state variable
+    // set state.socket
     bool connection_established = connect_to_server(state);
     if (!connection_established) {
         std::cerr << "[!] Connection to coordinator could not be establised. Make sure server is up and running." << std::endl;
         return 1;
     }
 
-    // graceful exit?
     int sock = state.socket;
     std::thread t_write(write_to_server_in_loop, std::ref(state), sock);
     std::thread t_read(read_from_server_in_loop, std::ref(state), sock, 32);

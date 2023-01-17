@@ -1,6 +1,8 @@
 #include "graceful.h"
 
 #include <unistd.h>
+#include <sys/socket.h>
+#include <csignal>
 
 void terminate_program(State& state) {
 
@@ -20,7 +22,19 @@ void terminate_program(State& state) {
         state.cv_sendQueue.notify_all();
 
         // read_from_server_in_loop, write_to_server_in_loop
-        close(state.socket);
+        // TODO: SHUT_RW or SHUT_RWRD?
+        shutdown(state.socket, SHUT_RD);
     }
     state.mtx_terminate.unlock();
+}
+
+
+void sigint_handler(int signal) {}
+
+void init_sigint_handler() {
+    struct sigaction sigIntHandler;
+    sigIntHandler.sa_handler = sigint_handler;
+    sigemptyset(&sigIntHandler.sa_mask);
+    sigIntHandler.sa_flags = 0;
+    sigaction(SIGINT, &sigIntHandler, nullptr);
 }
