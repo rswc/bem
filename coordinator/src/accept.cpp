@@ -64,6 +64,7 @@ void acceptConnections(int port, State& state)
             continue;
         } 
 
+        newNode->socket = nodeSocket;
         node_id_t node_id = newNode->id = next_node_id++;
 
         state.mtx_nodes.lock();

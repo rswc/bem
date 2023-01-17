@@ -36,8 +36,11 @@ private:
     std::vector<std::shared_ptr<Task>> tasks;
     std::mutex mtx_msgQueue;
     std::condition_variable cv_msgQueue;
+    
 
 public:
+
+    int socket;
     GameList gamelist;
     node_id_t id = NODE_ID_NONE;
     sockaddr_in addr{0};

@@ -14,10 +14,12 @@
 
 #include "messages.h"
 
-
 #include "gamelist.h"
 #include "json.hpp"
 #include "config.h"
+
+
+#include <unistd.h>
 
 bool setup(State& state, const std::string& configpath) {
     return load_config_from_file(state.config, configpath);
@@ -103,8 +105,21 @@ int main (int argc, char* argv[]) {
                 std::cout << "Node with such ID does not exist or is not registered." << std::endl;
             }
             state.mtx_nodes.unlock();
-            
-            
+        }
+        else if (cmd == "terminate") {
+            int nid;
+            std::cin >> nid;
+
+            state.mtx_nodes.lock();
+            if (state.nodeExists(nid)) {
+                // TODO: add gracefuly killing threads, destroying resources
+                // TODO: WR or RDWR? Maybe node can send result? 
+                shutdown(state.nodes[nid]->socket, SHUT_WR);
+                state.nodes.erase(nid);
+            } else {
+                std::cout << "Node with such ID does not exist." << std::endl;
+            }
+            state.mtx_nodes.unlock();
         }
         else if (cmd == "task")
         {
