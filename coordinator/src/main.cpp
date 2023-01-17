@@ -72,24 +72,7 @@ int main (int argc, char* argv[]) {
         std::cout << "> ";
         std::cin >> cmd;
 
-        if (cmd == "ping")
-        {
-            std::cin >> token;
-            int nid = std::stoi(token);
-            auto msg = std::make_unique<PingMessage>();
-            state.mtx_nodes.lock();
-            if (state.nodeExists(nid)) {
-                if (state.nodes[nid]->is_registered()) {
-                    state.nodes[nid]->Send(std::move(msg));
-                } else {
-                    std::cout << "Node with ID " << nid << " is not registered. Send HELLO first." << std::endl;
-                }
-            } else {
-                std::cout << "Node with such ID does not exist" << std::endl;
-            }
-            state.mtx_nodes.unlock();
-        }
-        else if (cmd == "notify") {
+        if (cmd == "notify") {
             int nid;
             std::cin >> nid;
 

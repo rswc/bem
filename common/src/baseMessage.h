@@ -9,14 +9,10 @@ public:
     enum MessageType : char {
         NONE,
         ERROR,
-        HELLO,  // Server sends hello with its current config
-        READY,  // Node sends sync proof
-        SYNC,   // Node can request assets
-        TASK,   // 
+        HELLO,  
+        TASK,   
         TASK_NOTIFY,
         RESULT,
-        PING,   // Heartbeat from server
-        PONG,   // Result
         N_MESSAGE_TYPES,
     };
 

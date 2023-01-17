@@ -3,10 +3,6 @@
 #include "handler.h"
 #include "messages.h"
 
-void handlePongMessage(State &state, int node_id, PongMessage *msg) {
-    std::cout << "[WT]: Node " << node_id << " sent PONG message!";
-}
-
 void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
     task_id_t task_id = msg->get_task_id();
     Result res = msg->get_result();
@@ -90,10 +86,6 @@ void handleCoordinatorMessages(State &state) {
             case BaseMessage::HELLO: {
                 HelloMessage *msg_ptr = dynamic_cast<HelloMessage*>(msg.get());
                 handleHelloMessage(state, node_id, msg_ptr); 
-            } break;
-            case BaseMessage::PING:  {
-                PongMessage *msg_ptr = dynamic_cast<PongMessage*>(msg.get());
-                handlePongMessage(state, node_id, msg_ptr);
             } break;
             case BaseMessage::TASK_NOTIFY: {
                 TaskNotifyMessage *msg_ptr = dynamic_cast<TaskNotifyMessage*>(msg.get());

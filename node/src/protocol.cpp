@@ -79,11 +79,6 @@ void wait_for_instructions_in_loop(State& state) {
         }
         
         switch (msg->GetType()) {
-            case BaseMessage::PING: {
-                auto resp = std::make_unique<PongMessage>();
-                std::cout << "Received PING. Sending PONG." << std::endl;
-                send_message(state, std::move(resp));
-            } break;
             case BaseMessage::TASK: {
                 TaskMessage *msg_ptr = dynamic_cast<TaskMessage*>(msg.get());
                 Task task = msg_ptr->task;
