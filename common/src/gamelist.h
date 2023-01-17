@@ -44,16 +44,18 @@ public:
         else return it->second.agents.find(agent_id) != it->second.agents.end();
     }
     
-    std::string get_game_name(games_id_t game_id) {
-        return games[game_id].name;
+    std::string get_game_name(games_id_t game_id) const {
+        return games.at(game_id).name;
     }
-    std::string get_game_relative_jar_path(games_id_t game_id) { 
-        return games[game_id].dirname + "/" + games[game_id].filename;
+    std::string get_game_relative_jar_path(games_id_t game_id) const { 
+        return games.at(game_id).dirname + "/" + games.at(game_id).filename;
     }
-    std::string get_agent_relative_jar_path(games_id_t game_id, games_id_t agent_id) { 
-        return games[game_id].dirname + "/agents/" + games[game_id].agents[agent_id].filename;
+    std::string get_agent_relative_jar_path(games_id_t game_id, games_id_t agent_id) const { 
+        return games.at(game_id).dirname + "/agents/" + games.at(game_id).agents.at(agent_id).filename;
     }
 };
+
+bool verify_loaded_gamelist(const GameList& gl, const std::string& games_dir); 
 
 void to_json(json &j, const Agent& a);
 void from_json(const json &j, Agent & a);

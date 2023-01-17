@@ -30,6 +30,12 @@ int main(int argc, char const *argv[]) {
         std::cerr << "[!] Reading configuration file resulted in failure. Make sure JSON config is valid." << std::endl;
         return 1;
     }
+    
+    bool gamelist_valid = verify_loaded_gamelist(state.config.gamelist, state.config.games_dir);
+    if (!gamelist_valid) {
+        std::cerr << "[!] Validating GameList resulted in failure. Make sure all JAR files are present." << std::endl;
+        return 1;
+    }
 
     // set state.socket
     bool connection_established = connect_to_server(state);
