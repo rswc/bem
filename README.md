@@ -48,6 +48,40 @@ Uruchomienie węzła:
 cd ./build/node/ && ./node
 ```
 
+## Graceful Exit
+
+Obecnie węzeł bezpiecznie zamyka wszystkie połączenia oraz zatrzymuje uruchomione wątki: 
+
+```
+$ ./coordinator
+[WT]: Node 1 sent HELLO message!
+[WT]: Set node 1 as REGISTERED. Sending Hello Response
+---- GameList ----
+-- [1]: migration
+[1]: MCTSBot
+[2]: RandomTestBot
+--------
+> nodes
+[1] 127.0.0.1:51658 flag<R>
+> terminate 1
+> nodes
+> 
+```
+
+```
+$ ./node
+Sending HELLO message to coordinator...
+Waiting for HELLO message from the coordinator...
+Server returned ACCEPT flag in hello response.
+Waiting for server instructions...
+[RFS]: Read from server loop broken. Returning.
+[WFI]: Waiting for instruction loop broken. Returning.
+[ET]: Execute tasks loop broken. Returning
+[WTS]: Write to server loop broken. Returning.
+$
+```
+
+
 ## Demo
 
 Koordynator udostępnia proste operacje zarządzania węzłami. 
