@@ -48,6 +48,29 @@ Uruchomienie węzła:
 cd ./build/node/ && ./node
 ```
 
+## Struktura GameList
+
+W pliku `node.json` należy ustawić atrybut `games_dir` który wyznacza korzeń folderów zawierających pliki gier. Każda gra posiada swój folder (wyznaczany przez atrybut `dirname`). W środku znajuje się plik gry `<filename>` w formacie JAR oraz folder `agents/` zawierający graczy dla danej gry.
+
+Przykładowa struktura plików znajduje się poniżej:
+
+```
+.
+└── <games_dir>/
+    ├── migration/
+    │   ├── migration.jar
+    │   └── agents/
+    │       ├── ExtremeRandomPlayer.jar
+    │       ├── RobBanks.jar
+    │       └── DonkeyKong.jar
+    └── tictactoe/
+        ├── TicTacToe.jar
+        └── agents/
+            ├── SimpleRandom.jar
+            ├── NaivePlayer.jar
+            └── TicTacTocker.jar
+```
+
 ## Graceful Exit
 
 Obecnie węzeł bezpiecznie zamyka wszystkie połączenia oraz zatrzymuje uruchomione wątki: 
@@ -90,7 +113,8 @@ Koordynator udostępnia proste operacje zarządzania węzłami.
 nodes - wyświetl wszystkie podłączone węzły
 games - wyświetl listę dostępnych gier oraz agentów na serwerze
 notify <node_id> - wyślij zapytanie o stan węzła
-task <game_id> <agent_id> <agent_id> <round_time_ms> <board_size> <games> - rozdziel zadania na zarejestrowane węzły tak aby każdy otrzymał równą ilość gier do rozegrania
+terminate <node_id> - zakończ połaczenie z węzłem
+task <game_id> <agent_id> <agent_id> <board_size> <round_limit_ms> <games> - rozdziel zadania na zarejestrowane węzły tak aby każdy otrzymał równą ilość gier do rozegrania
 ```
 
 Węzeł umożliwia jedynie pasywne podłączenie do serwera. 
