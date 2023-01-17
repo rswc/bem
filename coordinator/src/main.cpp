@@ -129,10 +129,10 @@ int main (int argc, char* argv[]) {
             uint16_t board_size;
             uint32_t move_limit_ms, games;
 
-            std::cin >> gid >> ag1 >> ag2 >> move_limit_ms >> board_size >> games;
+            std::cin >> gid >> ag1 >> ag2 >> board_size >> move_limit_ms >> games;
 
             Task task;
-            task.init(TASK_ID_NONE, gid, ag1, ag2, move_limit_ms, board_size, games);
+            task.init(TASK_ID_NONE, gid, ag1, ag2, board_size, move_limit_ms, games);
             auto node_ids = get_eligible_nodes_for_task(state, task);
 
             std::cout << "Node ids for given task: [";
