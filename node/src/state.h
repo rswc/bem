@@ -12,6 +12,8 @@
 struct State { 
     std::atomic<int> socket;
     
+    std::mutex mtx_terminate;
+    
     NodeConfig config;
     std::mutex mtx_config;
 
@@ -22,4 +24,5 @@ struct State {
     std::condition_variable cv_sendQueue, cv_recvQueue, cv_taskQueue;
     
     std::atomic<task_id_t> current_task_id = TASK_ID_NONE;
+    std::atomic<bool> should_quit = false;
 };

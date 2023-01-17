@@ -2,6 +2,7 @@
 #include "state.h"
 
 #include "messages.h"
+#include "graceful.h"
 
 void send_message(State& state, std::unique_ptr<BaseMessage> message) {
     std::unique_lock<std::mutex> guard(state.mtx_sendQueue);
@@ -13,8 +14,10 @@ void send_message(State& state, std::unique_ptr<BaseMessage> message) {
 std::unique_ptr<BaseMessage> receive_message(State& state) {
     std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
     state.cv_recvQueue.wait(guard, [&]() { 
-        return !state.recvMessageQueue.empty(); 
+        return state.should_quit || !state.recvMessageQueue.empty(); 
     });
+    
+    if (state.should_quit) return nullptr;
 
     auto msg = std::move(state.recvMessageQueue.front());
     state.recvMessageQueue.pop_front();
@@ -34,6 +37,7 @@ bool register_to_coordinator(State &state) {
         std::cout << "Waiting for HELLO message from the coordinator..." << std::endl;
 
         auto msg = receive_message(state);
+        
         if (msg->GetType() != BaseMessage::HELLO) {
             std::cout << "[!] Server returned message but its wrong." << std::endl;
             return false;
@@ -60,4 +64,86 @@ bool register_to_coordinator(State &state) {
         }
     }
     return true;
+}
+
+
+void wait_for_instructions_in_loop(State& state) {
+    while (!state.should_quit) {
+        std::cout << "Waiting for server instructions..." << std::endl;
+
+        // blocking
+        auto msg = receive_message(state);
+        
+        if (msg == nullptr) {
+            break;
+        }
+        
+        switch (msg->GetType()) {
+            case BaseMessage::PING: {
+                auto resp = std::make_unique<PongMessage>();
+                std::cout << "Received PING. Sending PONG." << std::endl;
+                send_message(state, std::move(resp));
+            } break;
+            case BaseMessage::TASK: {
+                TaskMessage *msg_ptr = dynamic_cast<TaskMessage*>(msg.get());
+                Task task = msg_ptr->task;
+                std::cout << "Received TASK. Appending to TaskQueue." << std::endl;
+
+                std::unique_lock<std::mutex> guard(state.mtx_taskQueue);
+                state.taskQueue.emplace_back(task);
+                guard.unlock();
+                state.cv_taskQueue.notify_one();
+            } break;
+            case BaseMessage::TASK_NOTIFY: {
+                TaskNotifyMessage *msg_ptr = dynamic_cast<TaskNotifyMessage*>(msg.get());
+                std::cout << "Received NOTIFY. Sending Reply" << std::endl;
+
+                task_id_t task_id = msg_ptr->task_id;
+                TaskStatus ts = msg_ptr->task_status;
+                
+                switch (msg_ptr->task_status) {
+                    case TaskStatus::TS_QUESTION: {
+                        auto tn_msg = std::make_unique<TaskNotifyMessage>();
+                        tn_msg->task_id = state.current_task_id;
+                        if (state.current_task_id == TASK_ID_NONE) {
+                            tn_msg->task_status = TaskStatus::TS_NONE;
+                        } 
+                        else {
+                            tn_msg->task_status = TaskStatus::TS_RUNNING;
+                        }
+                        send_message(state, std::move(tn_msg));
+                    } break;
+                    case TaskStatus::TS_CANCELED: {
+                        assert(0 && "<Panic>");
+                    } break;
+                    default: {
+                        assert(0 && "Invalid TaskStatus: <Panic>");
+                    }
+                }
+            } break;
+            default: {
+                assert(0 && "Not Implemented");
+            }
+            
+        }
+        if (msg->GetType() == BaseMessage::PING) {
+            // TODO: check for contents? 
+            
+            auto resp = std::make_unique<PongMessage>();
+            std::cout << "Received PING. Sending PONG." << std::endl;
+            send_message(state, std::move(resp));
+        }
+        else if (msg->GetType() == BaseMessage::TASK) {
+            TaskMessage *msg_ptr = dynamic_cast<TaskMessage*>(msg.get());
+            Task task = msg_ptr->task;
+            std::cout << "Received TASK. Appending to TaskQueue." << std::endl;
+
+            std::unique_lock<std::mutex> guard(state.mtx_taskQueue);
+            state.taskQueue.emplace_back(task);
+            guard.unlock();
+            state.cv_taskQueue.notify_one();
+        }
+    }
+    std::cout << "[WFI]: Waiting for instruction loop broken. Returning." << std::endl;
+    terminate_program(state);
 }

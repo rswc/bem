@@ -1,5 +1,6 @@
 #include "communication.h"
 #include "messageFactory.h"
+#include "graceful.h" // terminate_program
 
 #include <unistd.h>
 #include <error.h>
@@ -10,10 +11,17 @@
 #include <error.h>
 #include <netdb.h>
 
+#include <string>
+
 const size_t MAX_NODE_READ_BUFFER_SIZE = 1024;
 
 bool connect_to_server(State& state) {
-	addrinfo *server, hints={.ai_flags=0, .ai_family=AF_INET, .ai_socktype=SOCK_STREAM};
+	addrinfo *server, hints; 
+
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_flags = 0;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
     
     std::string host = state.config.host;
     std::string service = std::to_string(state.config.port);
@@ -47,19 +55,16 @@ void read_from_server_in_loop(State& state, int socket, size_t read_size) {
     char buffer[MAX_NODE_READ_BUFFER_SIZE];
     MessageFactory factory;
 
-    while (true) 
-    {
+    while (!state.should_quit) {
+
         auto len = read(socket, &buffer, read_size);
-	    if (len == -1) 
-        {
+	    if (len == -1) {
             error(1, errno, "read failed on server");
         } 
-        else if (len > 0)
-        {
+        else if (len > 0) {
             factory.Fill(buffer, len);
 
-            for (auto& msg : factory.readyMessages)
-            {
+            for (auto& msg : factory.readyMessages) {
                 std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
                 state.recvMessageQueue.push_back(std::move(msg));
                 guard.unlock();
@@ -72,15 +77,19 @@ void read_from_server_in_loop(State& state, int socket, size_t read_size) {
             break;
         }
     }
+    std::cerr << "[RFS]: Read from server loop broken. Returning." << std::endl;
+    terminate_program(state);
 }
 
 
 void write_to_server_in_loop(State& state, int socket) {
-    while (true) {
+    while (!state.should_quit) {
         std::unique_lock<std::mutex> guard(state.mtx_sendQueue);
         state.cv_sendQueue.wait(guard, [&]() { 
-            return !state.sendMessageQueue.empty(); 
+            return state.should_quit || !state.sendMessageQueue.empty(); 
         });
+        
+        if (state.should_quit) break;
 
         // take message object from queue
         auto msg = std::move(state.sendMessageQueue.front());
@@ -90,10 +99,15 @@ void write_to_server_in_loop(State& state, int socket) {
         auto mbuf = msg->Serialize();
         auto ret = write(socket, mbuf.Next(), mbuf.RemainingBytes());
 
-        if  (ret == -1) 
-        {
+        if  (ret == -1) { 
+            // TODO: should we interpret other codes? like EAGAIN
             error(1, errno, "write failed");
-        } 
+        } else if (ret == 0) {
+            // connection was closed
+            break;
+        }
         mbuf.Advance(ret);
     }
+    std::cerr << "[WTS]: Write to server loop broken. Returning." << std::endl;
+    terminate_program(state);
 }

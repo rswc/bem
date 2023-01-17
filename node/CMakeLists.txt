@@ -9,6 +9,8 @@ target_sources(node
         src/config.cpp
         src/communication.cpp
         src/protocol.cpp
+        src/graceful.cpp
+        src/execute.cpp
 )
 
 target_include_directories(node
