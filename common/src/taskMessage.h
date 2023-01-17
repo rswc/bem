@@ -7,7 +7,6 @@
 class TaskMessage : public BaseMessage
 {
 private:
-
 public:
     virtual MessageType GetType() const;
     // TODO: adpapt to Task

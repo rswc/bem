@@ -1,25 +1,26 @@
 {
     "port" : 12345,
-    "protocol_version" : 2,
+    "protocol_version" : 4,
     "games_dir" : "games",
     "gamelist" : {
         "games": [
             {
-                "id" : 0,
+                "id" : 1,
                 "name": "migration",
+                "dirname" : "migration",
                 "filename" : "migration.jar",
                 "hash" : "234234",
                 "agents": [
                     {
-                        "id" : 0,
-                        "name" : "MCTSBot",
-                        "filename" : "MCTSBOTFINAL.jar",
+                        "id" : 1,
+                        "name" : "Monte Carlo Tree Search Bot",
+                        "filename" : "MCTSPlayer.jar",
                         "hash" : "234234"
                     },
                     {
-                        "id" : 1,
-                        "name" : "RandomTestBot",
-                        "filename" : "RandomTestBot.jar",
+                        "id" : 2,
+                        "name" : "Test Bot (Random Moves)",
+                        "filename" : "NaivePlayer.jar",
                         "hash" : "234234"
                     }
                 ]

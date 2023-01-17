@@ -26,31 +26,95 @@ cmake ..
 make
 ```
 
-Pliki wykonywalne powinny znajdować się w `./coordinator/coordinator` oraz `./node/node`
+## Pliki konfiguracyjne
 
+Pliki wykonywalne powinny znajdować się w `./coordinator/coordinator` oraz `./node/node`. Należy w ich miejsce skopiować pliki `coordinator.json` oraz `node.json`. 
+
+```
+cp ./config/node.json ./build/node/
+cp ./config/coordinator.json ./build/coordinator/
+```
 ## Uruchomienie
 
 Uruchomienie koordynatora: 
 
 ```
-./build/coordinator/coordinator 
+cd ./build/coordinator/ && ./coordinator 
 ```
 
 Uruchomienie węzła:
 
 ```
-./build/node/node
+cd ./build/node/ && ./node
 ```
+
+## Struktura GameList
+
+W pliku `node.json` należy ustawić atrybut `games_dir` który wyznacza korzeń folderów zawierających pliki gier. Każda gra posiada swój folder (wyznaczany przez atrybut `dirname`). W środku znajuje się plik gry `<filename>` w formacie JAR oraz folder `agents/` zawierający graczy dla danej gry.
+
+Przykładowa struktura plików znajduje się poniżej:
+
+```
+.
+└── <games_dir>/
+    ├── migration/
+    │   ├── migration.jar
+    │   └── agents/
+    │       ├── ExtremeRandomPlayer.jar
+    │       ├── RobBanks.jar
+    │       └── DonkeyKong.jar
+    └── tictactoe/
+        ├── TicTacToe.jar
+        └── agents/
+            ├── SimpleRandom.jar
+            ├── NaivePlayer.jar
+            └── TicTacTocker.jar
+```
+
+## Graceful Exit
+
+Obecnie węzeł bezpiecznie zamyka wszystkie połączenia oraz zatrzymuje uruchomione wątki: 
+
+```
+$ ./coordinator
+[WT]: Node 1 sent HELLO message!
+[WT]: Set node 1 as REGISTERED. Sending Hello Response
+---- GameList ----
+-- [1]: migration
+[1]: MCTSBot
+[2]: RandomTestBot
+--------
+> nodes
+[1] 127.0.0.1:51658 flag<R>
+> terminate 1
+> nodes
+> 
+```
+
+```
+$ ./node
+Sending HELLO message to coordinator...
+Waiting for HELLO message from the coordinator...
+Server returned ACCEPT flag in hello response.
+Waiting for server instructions...
+[RFS]: Read from server loop broken. Returning.
+[WFI]: Waiting for instruction loop broken. Returning.
+[ET]: Execute tasks loop broken. Returning
+[WTS]: Write to server loop broken. Returning.
+$
+```
+
 
 ## Demo
 
 Koordynator udostępnia proste operacje zarządzania węzłami. 
 
 ```
-list - wyświetl wszystkie podłączone węzły
-hello <id> - zarejestruj wybrany węzeł z listy podłączonych 
-ping <id> - wyślij wiadomość typu PING, oczekuj na PONG
-task <id> - wyślij testowe zadanie na węzeł, oczekuj na wynik
+nodes - wyświetl wszystkie podłączone węzły
+games - wyświetl listę dostępnych gier oraz agentów na serwerze
+notify <node_id> - wyślij zapytanie o stan węzła
+terminate <node_id> - zakończ połaczenie z węzłem
+task <game_id> <agent_id> <agent_id> <board_size> <round_limit_ms> <games> - rozdziel zadania na zarejestrowane węzły tak aby każdy otrzymał równą ilość gier do rozegrania
 ```
 
 Węzeł umożliwia jedynie pasywne podłączenie do serwera. 
@@ -58,32 +122,54 @@ Węzeł umożliwia jedynie pasywne podłączenie do serwera.
 Przykład komunikacji między węzłem a serwerem:
 
 `coordinator`:
-```
-$ ./build/coordinator/coordinator
-> list
-[0] 127.0.0.1:35392 flag<0>
-> hello 0
-> [WT]: Node 0 sent READY message! Setting node as REGISTERED.
+```bash
+$ ./coordinator
+> nodes
+>
+<podłączenie węzła>
+[WT]: Node 1 sent HELLO message!
+[WT]: Set node 1 as REGISTERED. Sending Hello Response
+---- GameList ----
+-- [1]: migration
+[1]: MCTSBot
+[2]: RandomTestBot
+--------
+> nodes
+[1] 127.0.0.1:45314 flag<R>
+> notify 1
+[WT]: Node 1 sent Notification Message !
+[WT]: Reply took node [1] 0.00033152 seconds!
+Node is currently idle
 
-> ping 0
-> [WT]: Node 0 sent PONG message!
+# wyślij zadanie dla node[1] aby rozegrał 200 gier
+> task 1 1 2 50000 8 200
+Node ids for given task: [1, ]
+Splitting tasks to eligible nodes:
+[1] -> 200
+> notify 1
+[WT]: Node 1 sent Notification Message !
+# Czas odpowiedzi od węzła
+[WT]: Reply took node [1] 0.000383893 seconds!
+Node is running task 1
 
-> task 0
-(oczekiwanie na zakończenie zadania - sleep 10s) 
-> [WT]: Node 0 sent RESULT for task id: 0
+# Węzeł zwrócił wynik
+[WT]: Node 1 sent RESULT for task id: 1
 ```
 
 `node`:
 
 ```
-$ ./build/node/node
-Waiting for HELLO message from the server...
-Server returned correct protocol version.
+$ ./node
+Sending HELLO message to coordinator...
+Waiting for HELLO message from the coordinator...
+Server returned ACCEPT flag in hello response.
 Waiting for server instructions...
-Received PING. Sending PONG.
+Received NOTIFY. Sending Reply
 Waiting for server instructions...
 Received TASK. Appending to TaskQueue.
-[DT]: Task with id 0, received. Sleeping for 10 seconds
 Waiting for server instructions...
-[DT]: Task with id 0, done. Sending result
+[DT]: Task with id 1, received. Sleeping for 10 seconds
+Received NOTIFY. Sending Reply
+Waiting for server instructions...
+[DT]: Task with id 1, done. Sending result
 ```

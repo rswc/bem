@@ -1,6 +1,8 @@
 #include "config.h"
 #include "json.hpp"
 
+const std::string DEFAULT_CONFIG_FILENAME = "coordinator.json";
+
 void to_json(json& j, const CoordinatorConfig& c) {
     j = json { 
         { "port", c.port },  
@@ -17,7 +19,7 @@ void from_json(const json& j, CoordinatorConfig& c) {
     j.at("gamelist").get_to(c.gamelist);
 }
 
-bool load_config_from_file(const std::string& configpath, CoordinatorConfig& config) {
+bool load_config_from_file(CoordinatorConfig& config, const std::string& configpath = DEFAULT_CONFIG_FILENAME) {
     if (!std::filesystem::exists(configpath)) {
         std::cout << "[!] Cannot load coordinator config: path <" << configpath << "> does not exist." << std::endl;
         return false;

@@ -59,17 +59,11 @@ void MessageFactory::Interpret()
             case BaseMessage::MessageType::RESULT:
                 message = std::make_unique<ResultMessage>();
                 break;
-            case BaseMessage::MessageType::PING:
-                message = std::make_unique<PingMessage>();
-                break;
-            case BaseMessage::MessageType::PONG:
-                message = std::make_unique<PongMessage>();
-                break;
             case BaseMessage::MessageType::HELLO:
                 message = std::make_unique<HelloMessage>();
                 break;
-            case BaseMessage::MessageType::READY:
-                message = std::make_unique<ReadyMessage>();
+            case BaseMessage::MessageType::TASK_NOTIFY:
+                message = std::make_unique<TaskNotifyMessage>();
                 break;
             default: 
                 assert(0 && "Not implemented");

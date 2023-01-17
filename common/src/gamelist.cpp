@@ -9,6 +9,46 @@
 
 using json = nlohmann::json;
 
+const games_id_t GAME_ID_NONE = 0u;
+const games_id_t GAME_ID_FIRST = 1u;
+
+bool verify_loaded_gamelist(const GameList& gl, const std::string& games_dir) {
+    std::cerr << "[GL]: Veryfing loaded gamelist..." << std::endl;
+
+    if (!std::filesystem::exists(games_dir)) {
+        std::cerr << "[!] Games Directory: " << games_dir << " does not exist." << std::endl;
+        return false;
+    }
+
+    bool valid = true;
+    for (const auto&[game_id, Game] : gl.games) {
+        std::string relative_game_jar = gl.get_game_relative_jar_path(game_id);
+        std::string jar_path = games_dir + "/" + relative_game_jar; 
+        
+        std::cerr << "- " << Game.name << " " << jar_path << " -> ";
+        if (std::filesystem::exists(jar_path)) {
+            std::cerr << "[OK]" << std::endl;
+        } else {
+            std::cerr << "[ERROR]" << std::endl;
+            valid = false;
+        }
+        
+        for (const auto&[agent_id, Agent] : Game.agents) {
+            std::string relative_agent_jar = gl.get_agent_relative_jar_path(game_id, agent_id);
+            std::string jar_path = games_dir + "/" + relative_agent_jar; 
+            
+            std::cerr << "--- " << Agent.name << " " << jar_path << " -> ";
+            if (std::filesystem::exists(jar_path)) {
+                std::cerr << "[OK]" << std::endl;
+            } else {
+                std::cerr << "[ERROR]" << std::endl;
+                valid = false;
+            }
+        }
+    }
+    return valid;
+}
+
 void to_json(json &j, const Agent& a) {
     j = json{ 
         { "id", a.agent_id, }, 
@@ -35,6 +75,7 @@ void to_json(json &j, const Game& g) {
     j = json {
         { "id", g.game_id, }, 
         { "name" , g.name }, 
+        { "dirname" , g.dirname },  
         { "filename" , g.filename },  
         { "hash" , g.hash },
         { "agents", agents }
@@ -44,6 +85,7 @@ void to_json(json &j, const Game& g) {
 void from_json(const json& j, Game &g) {
     j.at("id").get_to(g.game_id);
     j.at("name").get_to(g.name);
+    j.at("dirname").get_to(g.dirname);
     j.at("filename").get_to(g.filename);
     j.at("hash").get_to(g.hash);
     

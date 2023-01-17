@@ -21,7 +21,7 @@ void setReuseAddr(int sock){
 
 void acceptConnections(int port, State& state)
 {
-    int nextNodeId = 0;
+    node_id_t next_node_id = NODE_ID_FIRST;
 
     // open entry socket
     int entrySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -59,18 +59,18 @@ void acceptConnections(int port, State& state)
         }
 
         //TODO: Switch from using cout to maybe other log
-        if (state.nodeExists(nextNodeId)) {
-            std::cout << "Node with ID " << nextNodeId << " is already registered." << std::endl;
+        if (state.nodeExists(next_node_id)) {
+            std::cout << "Node with ID " << next_node_id << " is already registered." << std::endl;
             continue;
         } 
 
-        int node_id = newNode->id = nextNodeId++;
+        newNode->socket = nodeSocket;
+        node_id_t node_id = newNode->id = next_node_id++;
 
         state.mtx_nodes.lock();
         state.nodes.insert({node_id, std::move(newNode)});
-        int nidx = state.nodes.size() - 1;
-        std::thread t_rdnode(readNode, nodeSocket, state.nodes[nidx], std::ref(state));
-        std::thread t_wrnode(writeNode, nodeSocket, state.nodes[nidx], std::ref(state));
+        std::thread t_rdnode(readNode, nodeSocket, state.nodes[node_id], std::ref(state));
+        std::thread t_wrnode(writeNode, nodeSocket, state.nodes[node_id], std::ref(state));
         state.mtx_nodes.unlock();
 
 

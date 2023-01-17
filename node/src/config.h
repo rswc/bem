@@ -5,9 +5,10 @@
 
 #include "gamelist.h"
 
+#define DEFAULT_CONFIG_FILENAME "node.json"
 struct NodeConfig {
     std::string host;
-    short port;
+    uint16_t port;
     uint8_t protocol_version;
     std::string games_dir; 
     GameList gamelist;
@@ -15,4 +16,4 @@ struct NodeConfig {
 
 void to_json(json& j, const NodeConfig& c);
 void from_json(const json& j, NodeConfig& c);
-bool load_config_from_file(const std::string& configpath, NodeConfig& config);
+bool load_node_config_from_file(NodeConfig& config, const std::string& configpath);

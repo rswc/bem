@@ -6,10 +6,11 @@ add_executable(node)
 target_sources(node
     PRIVATE
         src/main.cpp
-        src/state.cpp
-        src/write.cpp
-        src/read.cpp
         src/config.cpp
+        src/communication.cpp
+        src/protocol.cpp
+        src/graceful.cpp
+        src/execute.cpp
 )
 
 target_include_directories(node
