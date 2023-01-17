@@ -38,6 +38,7 @@ void to_json(json &j, const Game& g) {
     j = json {
         { "id", g.game_id, }, 
         { "name" , g.name }, 
+        { "dirname" , g.dirname },  
         { "filename" , g.filename },  
         { "hash" , g.hash },
         { "agents", agents }
@@ -47,6 +48,7 @@ void to_json(json &j, const Game& g) {
 void from_json(const json& j, Game &g) {
     j.at("id").get_to(g.game_id);
     j.at("name").get_to(g.name);
+    j.at("dirname").get_to(g.dirname);
     j.at("filename").get_to(g.filename);
     j.at("hash").get_to(g.hash);
     

@@ -24,6 +24,7 @@ struct Agent {
 struct Game {
     games_id_t game_id;
     std::string name; 
+    std::string dirname;
     std::string filename;
     std::string hash;
     std::unordered_map<games_id_t, Agent> agents;
@@ -41,6 +42,16 @@ public:
         auto it = games.find(game_id);
         if (it == games.end()) return false;
         else return it->second.agents.find(agent_id) != it->second.agents.end();
+    }
+    
+    std::string get_game_name(games_id_t game_id) {
+        return games[game_id].name;
+    }
+    std::string get_game_relative_jar_path(games_id_t game_id) { 
+        return games[game_id].dirname + "/" + games[game_id].filename;
+    }
+    std::string get_agent_relative_jar_path(games_id_t game_id, games_id_t agent_id) { 
+        return games[game_id].dirname + "/agents/" + games[game_id].agents[agent_id].filename;
     }
 };
 
