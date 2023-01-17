@@ -66,6 +66,9 @@ Result execute_task(State& state, const Task& task) {
     
     std::cout << "[ET]: running: " << game_command << std::endl;
     Result result;
+    result.games = 0;
+    result.win_agent1 = 0;
+    result.win_agent2 = 0;
     
     for (uint32_t i = 0u; i < task.games; i++) {
         int winner = 0; // 1 if first, 2 if second, 0 if draft
