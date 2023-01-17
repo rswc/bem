@@ -124,24 +124,6 @@ void wait_for_instructions_in_loop(State& state) {
             default: {
                 assert(0 && "Not Implemented");
             }
-            
-        }
-        if (msg->GetType() == BaseMessage::PING) {
-            // TODO: check for contents? 
-            
-            auto resp = std::make_unique<PongMessage>();
-            std::cout << "Received PING. Sending PONG." << std::endl;
-            send_message(state, std::move(resp));
-        }
-        else if (msg->GetType() == BaseMessage::TASK) {
-            TaskMessage *msg_ptr = dynamic_cast<TaskMessage*>(msg.get());
-            Task task = msg_ptr->task;
-            std::cout << "Received TASK. Appending to TaskQueue." << std::endl;
-
-            std::unique_lock<std::mutex> guard(state.mtx_taskQueue);
-            state.taskQueue.emplace_back(task);
-            guard.unlock();
-            state.cv_taskQueue.notify_one();
         }
     }
     std::cout << "[WFI]: Waiting for instruction loop broken. Returning." << std::endl;
