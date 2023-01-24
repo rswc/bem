@@ -1,13 +1,14 @@
 #include "maintenance.h"
 #include "taskNotifyMessage.h"
+#include "node.h"
 
 void doMaintenance(State &state) {
 
-    bool balanceTasks;
+    bool tasksNeedBalancing;
 
     while (!state.shouldQuit)
     {
-        balanceTasks = false;
+        tasksNeedBalancing = false;
 
         state.mtx_nodes.lock();
         state.mtx_tasks.lock();
@@ -46,7 +47,7 @@ void doMaintenance(State &state) {
 
                         node->UnassignTask(task);
 
-                        balanceTasks = true;
+                        tasksNeedBalancing = true;
                     }
                 }
 
@@ -58,6 +59,10 @@ void doMaintenance(State &state) {
             //     // shutdown, remove node from state
             // }
 
+        }
+
+        if (tasksNeedBalancing) {
+            balanceTasks(state);
         }
 
         state.mtx_nodes.unlock();

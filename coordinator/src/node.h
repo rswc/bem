@@ -29,6 +29,8 @@ enum NodeFlag : node_flag_t {
 
 std::vector<node_id_t> get_eligible_nodes_for_task(State& state, const Task& task);
 
+void balanceTasks(State& state);
+
 class Node
 {
     friend void writeNode(int sock, std::shared_ptr<Node> node, State& state);
