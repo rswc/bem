@@ -4,6 +4,7 @@
 
 #include "byteBuffer.h"
 #include "gamelist.h"
+#include "result.h"
 
 using task_id_t = uint32_t;
 
@@ -58,6 +59,7 @@ struct TaskGroup
 {
     task_id_t id = TASK_ID_NONE;
     uint32_t remaining_tasks = 0;
+    Result aggregate_result = Result(0, 0, 0);
 
     TaskGroup(task_id_t id) : id(id) {}
 };
