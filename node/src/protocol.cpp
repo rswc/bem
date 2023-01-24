@@ -68,9 +68,6 @@ bool register_to_coordinator(State &state) {
 
 
 void wait_for_instructions_in_loop(State& state) {
-
-    int sillyCounter = 4;
-
     while (!state.should_quit) {
         std::cout << "Waiting for server instructions..." << std::endl;
 
@@ -110,9 +107,8 @@ void wait_for_instructions_in_loop(State& state) {
                         else {
                             tn_msg->task_status = TaskStatus::TS_RUNNING;
                         }
-                        
-                        if (--sillyCounter > 0) // DEBUG: simulate connection break
-                            send_message(state, std::move(tn_msg));
+
+                        send_message(state, std::move(tn_msg));
                     } break;
                     case TaskStatus::TS_CANCELLED: {
                         assert(0 && "<Panic>");
