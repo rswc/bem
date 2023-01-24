@@ -5,7 +5,7 @@
 #include "byteBuffer.h"
 #include "gamelist.h"
 
-using task_id_t = uint32_t; 
+using task_id_t = uint32_t;
 
 extern const task_id_t TASK_ID_NONE;
 extern const task_id_t TASK_ID_FIRST;
@@ -21,6 +21,7 @@ enum TaskStatus : int8_t {
 struct Task
 {
     task_id_t id = TASK_ID_NONE;
+    task_id_t group_id = TASK_ID_NONE;
     games_id_t game_id = GAME_ID_NONE;
     games_id_t agent1 = GAME_ID_NONE;
     games_id_t agent2 = GAME_ID_NONE;
@@ -29,9 +30,18 @@ struct Task
     uint32_t games = 1u;
     TaskStatus status = TS_NONE;
    
-    void init(task_id_t id, games_id_t game_id, games_id_t agent1, games_id_t agent2, uint32_t board_size, uint32_t move_limit_ms,  
-        uint32_t games) {
+    void init(
+        task_id_t id,
+        task_id_t group_id,
+        games_id_t game_id,
+        games_id_t agent1,
+        games_id_t agent2,
+        uint32_t board_size,
+        uint32_t move_limit_ms,
+        uint32_t games
+    ) {
         this->id = id;
+        this->group_id = group_id;
         this->game_id = game_id;
         this->agent1 = agent1;
         this->agent2 = agent2;
@@ -42,4 +52,12 @@ struct Task
 
     void Serialize(ByteBuffer& buffer) const;
     void Deserialize(ByteBuffer& buffer);
+};
+
+struct TaskGroup
+{
+    task_id_t id = TASK_ID_NONE;
+    uint32_t remaining_tasks = 0;
+
+    TaskGroup(task_id_t id) : id(id) {}
 };

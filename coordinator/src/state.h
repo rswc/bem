@@ -18,6 +18,9 @@ struct State
     std::unordered_map<node_id_t, std::shared_ptr<Node>> nodes;
     std::mutex mtx_nodes;
 
+    std::unordered_map<task_id_t, std::shared_ptr<TaskGroup>> groups;
+    std::mutex mtx_groups;
+
     std::unordered_map<task_id_t, std::shared_ptr<Task>> tasks;
     std::mutex mtx_tasks;
 
