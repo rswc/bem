@@ -107,7 +107,6 @@ void handleCoordinatorMessages(State &state) {
         guard.unlock();
 
         switch (msg->GetType()) {
-            case BaseMessage::NONE: break;
             case BaseMessage::RESULT: {
                 ResultMessage *msg_ptr = dynamic_cast<ResultMessage*>(msg.get());
                 handleResultMessage(state, node_id, msg_ptr); 
@@ -119,6 +118,9 @@ void handleCoordinatorMessages(State &state) {
             case BaseMessage::TASK_NOTIFY: {
                 TaskNotifyMessage *msg_ptr = dynamic_cast<TaskNotifyMessage*>(msg.get());
                 handleNotifyTaskMessage(state, node_id, msg_ptr);
+            } break;
+            case BaseMessage::NONE: {
+                state.terminateNode(node_id);
             } break;
             default: {
                 assert(0 && "Handler not implemented!");

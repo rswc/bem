@@ -24,7 +24,11 @@ void MessageFactory::Fill(const char* data, size_t length)
             messageSize = buf->GetAt<size_t>(BaseMessage::SIZE_OFFSET);
 
             if (messageSize < BaseMessage::HEADER_SIZE)
-                throw std::invalid_argument("Bad message received: Length is shorter than header size");
+            {
+                readyMessages.push_back(std::move(MakeInvalid()));
+                return;
+            }
+
         }
         else if (buf->Length() >= messageSize)
         {
