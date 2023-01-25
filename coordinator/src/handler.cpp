@@ -6,11 +6,34 @@
 void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
     task_id_t task_id = msg->get_task_id();
     Result res = msg->get_result();
+
     std::cout << "[WT]: Node " << node_id << " sent RESULT for task id: " << task_id << std::endl;
     std::cout << "- " << res.games << " games played." << std::endl;
     std::cout << "- " << res.win_agent1 << " games won by agent1" << std::endl;
     std::cout << "- " << res.win_agent2 << " games won by agent2" << std::endl;
     std::cout << "- " << res.games - res.win_agent1 - res.win_agent2 << " draws." << std::endl;
+
+    state.mtx_tasks.lock();
+    state.mtx_groups.lock();
+
+    auto task = state.tasks[task_id];
+    auto group = state.groups[task->group_id];
+
+    group->remaining_tasks--;
+    group->aggregate_result = group->aggregate_result.merge(res);
+
+    std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
+
+    if (group->remaining_tasks == 0) {
+        group->status = TS_DONE;
+        std::cout << "- GROUP [" << group->id << "] has finished processing." << std::endl;
+        std::cout << "-- Total of " << group->aggregate_result.games << " games played. " << std::endl;
+        std::cout << "-- Total of " << group->aggregate_result.win_agent1 << " won by agent 1. " << std::endl;
+        std::cout << "-- Total of " << group->aggregate_result.win_agent2 << " won by agent 2. " << std::endl;
+    }
+
+    state.mtx_tasks.unlock();
+    state.mtx_groups.unlock();
 }
 
 void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
@@ -48,20 +71,22 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
 }
 
 void handleNotifyTaskMessage(State &state, int node_id, TaskNotifyMessage *msg) {
-    std::cout << "[WT]: Node " << node_id << " sent Notification Message !" << std::endl;
+    // std::cout << "[WT]: Node " << node_id << " sent Notification Message !" << std::endl;
 
     // maybe assert before handling that node exists?
     state.mtx_nodes.lock();
+
     if (state.nodeExists(node_id) && state.nodes[node_id]->is_registered()) {
         state.nodes[node_id]->mark_response();
-        double reply_time = state.nodes[node_id]->reply_time();
-        std::cout << "[WT]: Reply took node [" << node_id << "] " << reply_time << " seconds!" << std::endl;
-        if (msg->task_status == TS_RUNNING) {
-            std::cout << "Node is running task " << msg->task_id << std::endl;
-        } else if (msg->task_status == TS_NONE) {
-            std::cout << "Node is currently idle " << std::endl;
-        }
+        // double reply_time = state.nodes[node_id]->reply_time();
+        // std::cout << "[WT]: Reply took node [" << node_id << "] " << reply_time << " seconds!" << std::endl;
+        // if (msg->task_status == TS_RUNNING) {
+        //     std::cout << "Node is running task " << msg->task_id << std::endl;
+        // } else if (msg->task_status == TS_NONE) {
+        //     std::cout << "Node is currently idle " << std::endl;
+        // }
     }
+
     state.mtx_nodes.unlock();
 }
 
