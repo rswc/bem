@@ -43,6 +43,9 @@ int main (int argc, char* argv[]) {
     std::thread t_acc(acceptConnections, state.config.port, std::ref(state));
     std::thread t_handler(handleCoordinatorMessages, std::ref(state));
     std::thread t_maintenance(doMaintenance, std::ref(state));
+
+    std::cout << "= Bot Evaluation Machine v1.0\n= \n=  Iusiurandum, patri datum, usque\n"
+            << "=  ad hanc diem ita servavi\n= \n= Type 'help' to view available commands." << std::endl;
     
     // Temporary scuff interface
     std::string cmd, token;
@@ -51,7 +54,19 @@ int main (int argc, char* argv[]) {
         std::cout << "> ";
         std::cin >> cmd;
 
-        if (cmd == "notify") {
+        if (cmd == "help" || cmd == "?") {
+            std::cout << "List of available commands:\n"
+                << " - help - Show this list\n"
+                << " - terminate <NODE_ID> - Terminate connection to node with the specified id\n"
+                << " - nodes - List all nodes in this system\n"
+                << " - tasks - List all tasks in this system\n"
+                << " - games - List all games recognized by this system\n"
+                << " - cancel <TASK_ID> - Cancel task with the specified id\n"
+                << " - task <GAME_ID> <AGENT_1> <AGENT_2> <BOARD_SIZE> <MOVE_LIMIT_MS> <NUM_GAMES>\n"
+                << "     - Create new task. NUM_GAMES battles of game identified by GAME_ID\n"
+                << "       between AGENT_1 and AGENT_2 will be performed" << std::endl;
+
+        } else if (cmd == "notify") {
             int nid;
             std::cin >> nid;
 
