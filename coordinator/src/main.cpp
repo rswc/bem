@@ -27,11 +27,12 @@ bool setup(State& state, const std::string& configpath) {
 }
 
 int main (int argc, char* argv[]) {
-
-    // TODO: load config path from argv
-
+    std::string configpath = std::string(DEFAULT_CONFIG_FILENAME);
+    if (argc == 2) {
+        configpath = std::string(argv[1]);
+    } 
+    
     State state;
-    std::string configpath = "coordinator.json";
     bool result = setup(state, configpath);
     
     if (!result) {
