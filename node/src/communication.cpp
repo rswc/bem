@@ -15,7 +15,7 @@
 
 const size_t MAX_NODE_READ_BUFFER_SIZE = 1024;
 
-bool connect_to_server(State& state) {
+bool connect_to_server() {
 	addrinfo *server, hints; 
 
     std::memset(&hints, 0, sizeof(hints));
@@ -23,8 +23,8 @@ bool connect_to_server(State& state) {
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     
-    std::string host = state.config.host;
-    std::string service = std::to_string(state.config.port);
+    std::string host = getGlobalState().config.host;
+    std::string service = std::to_string(getGlobalState().config.port);
 
     int res = getaddrinfo(host.c_str(), service.c_str(), &hints, &server); 
 	if (res || !server) {
@@ -46,16 +46,16 @@ bool connect_to_server(State& state) {
 
 	freeaddrinfo(server);
 
-    state.socket = sock;
+    getGlobalState().socket = sock;
     return true;
 }
 
-void read_from_server_in_loop(State& state, int socket, size_t read_size) {
+void read_from_server_in_loop(int socket, size_t read_size) {
     assert (read_size <= MAX_NODE_READ_BUFFER_SIZE);
     char buffer[MAX_NODE_READ_BUFFER_SIZE];
     MessageFactory factory;
 
-    while (!state.should_quit) {
+    while (!getGlobalState().should_quit) {
 
         auto len = read(socket, &buffer, read_size);
 	    if (len == -1) {
@@ -65,10 +65,10 @@ void read_from_server_in_loop(State& state, int socket, size_t read_size) {
             factory.Fill(buffer, len);
 
             for (auto& msg : factory.readyMessages) {
-                std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
-                state.recvMessageQueue.push_back(std::move(msg));
+                std::unique_lock<std::mutex> guard(getGlobalState().mtx_recvQueue);
+                getGlobalState().recvMessageQueue.push_back(std::move(msg));
                 guard.unlock();
-                state.cv_recvQueue.notify_one();
+                getGlobalState().cv_recvQueue.notify_one();
             }
 
             factory.FinishExtraction();
@@ -78,22 +78,22 @@ void read_from_server_in_loop(State& state, int socket, size_t read_size) {
         }
     }
     std::cerr << "[RFS]: Read from server loop broken. Returning." << std::endl;
-    terminate_program(state);
+    terminate_program();
 }
 
 
-void write_to_server_in_loop(State& state, int socket) {
-    while (!state.should_quit) {
-        std::unique_lock<std::mutex> guard(state.mtx_sendQueue);
-        state.cv_sendQueue.wait(guard, [&]() { 
-            return state.should_quit || !state.sendMessageQueue.empty(); 
+void write_to_server_in_loop(int socket) {
+    while (!getGlobalState().should_quit) {
+        std::unique_lock<std::mutex> guard(getGlobalState().mtx_sendQueue);
+        getGlobalState().cv_sendQueue.wait(guard, [&]() { 
+            return getGlobalState().should_quit || !getGlobalState().sendMessageQueue.empty(); 
         });
         
-        if (state.should_quit) break;
+        if (getGlobalState().should_quit) break;
 
         // take message object from queue
-        auto msg = std::move(state.sendMessageQueue.front());
-        state.sendMessageQueue.pop_front();
+        auto msg = std::move(getGlobalState().sendMessageQueue.front());
+        getGlobalState().sendMessageQueue.pop_front();
         guard.unlock();
         
         auto mbuf = msg->Serialize();
@@ -109,5 +109,5 @@ void write_to_server_in_loop(State& state, int socket) {
         mbuf.Advance(ret);
     }
     std::cerr << "[WTS]: Write to server loop broken. Returning." << std::endl;
-    terminate_program(state);
+    terminate_program();
 }

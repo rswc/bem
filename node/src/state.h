@@ -26,3 +26,5 @@ struct State {
     std::atomic<task_id_t> current_task_id = TASK_ID_NONE;
     std::atomic<bool> should_quit = false;
 };
+
+State& getGlobalState();
