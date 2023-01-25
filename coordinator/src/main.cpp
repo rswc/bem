@@ -125,6 +125,7 @@ int main (int argc, char* argv[]) {
 
                 TaskGroup tgroup(next_group_id++);
                 tgroup.remaining_tasks = n_nodes;
+                tgroup.status = TS_RUNNING;
                 state.groups.insert({tgroup.id, std::make_shared<TaskGroup>(tgroup)});
 
                 task.group_id = tgroup.id;
@@ -162,6 +163,75 @@ int main (int argc, char* argv[]) {
                     << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">\n";
             }
             state.mtx_nodes.unlock();
+            std::cout.flush();
+        }
+        else if (cmd == "tasks")
+        {
+            state.mtx_groups.lock();
+
+            for (auto& [group_id, group] : state.groups)
+            {
+                assert(group_id == group->id);
+                std::cout << "[" << group_id << "] ";
+
+                switch (group->status) {
+                    case TS_RUNNING: {
+                        std::cout << "RUNNING (waiting for " << group->remaining_tasks << " sub-tasks to complete)\n";
+                    } break;
+                    case TS_DONE: {
+                        std::cout << "DONE: (p1/draw/p2)=(" << group->aggregate_result.win_agent1
+                            << "/" << group->aggregate_result.games - group->aggregate_result.win_agent1 - group->aggregate_result.win_agent2
+                            << "/" << group->aggregate_result.win_agent2 << ")\n";
+                    } break;
+                    case TS_CANCELLED: {
+                        std::cout << "CANCELLED\n";
+                    } break;
+                    default: {
+                        std::cout << "\n";
+                    }
+                }
+
+            }
+
+            state.mtx_groups.unlock();
+            std::cout.flush();
+        }
+        else if (cmd == "cancel")
+        {
+            task_id_t group_id;
+            std::cin >> group_id;
+
+            state.mtx_nodes.lock();
+            state.mtx_tasks.lock();
+            state.mtx_groups.lock();
+
+            if (state.groupExists(group_id) && state.groups[group_id]->status == TS_RUNNING) {
+                state.groups[group_id]->status = TS_CANCELLED;
+                
+                for (auto& [task_id, task] : state.tasks)
+                {
+                    if (task->group_id != group_id) continue;
+                    if (task->status != TS_RUNNING) continue;
+
+                    for (auto& [node_id, node] : state.nodes)
+                    {
+                        for (auto& node_task : node->tasks)
+                        {
+                            if (node_task->id == task_id) {
+                                node->UnassignTask(node_task);
+                            }
+                        }
+                    }
+                }
+
+            } else {
+                std::cout << "Task with such ID does not exist or is not running." << std::endl;
+            }
+
+            state.mtx_nodes.unlock();
+            state.mtx_tasks.unlock();
+            state.mtx_groups.unlock();
+            
             std::cout.flush();
         }
         else if (cmd == "games") {

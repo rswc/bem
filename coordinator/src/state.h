@@ -33,5 +33,6 @@ struct State
     
     bool shouldQuit = false;
     bool nodeExists(int node_id) { return nodes.find(node_id) != nodes.end(); }
+    bool groupExists(int group_id) { return groups.find(group_id) != groups.end(); }
 };
 
