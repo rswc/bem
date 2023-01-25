@@ -29,12 +29,11 @@ void terminate_program() {
 }
 
 
-void sigint_handler(int signal) {}
+void sigint_handler(int signum) {
+    std::cerr << "[!] Called handler for signal " << signum << "! Terminating Node program" << std::endl;
+    terminate_program();
+}
 
 void init_sigint_handler() {
-    struct sigaction sigIntHandler;
-    sigIntHandler.sa_handler = sigint_handler;
-    sigemptyset(&sigIntHandler.sa_mask);
-    sigIntHandler.sa_flags = 0;
-    sigaction(SIGINT, &sigIntHandler, nullptr);
+    signal(SIGINT, sigint_handler);
 }

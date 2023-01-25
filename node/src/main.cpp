@@ -17,6 +17,8 @@
 #include <chrono>
 
 int main(int argc, char const *argv[]) {
+    init_sigint_handler();
+    
     std::string configpath = std::string(DEFAULT_CONFIG_FILENAME);
     if (argc == 2) {
         configpath = std::string(argv[1]);
