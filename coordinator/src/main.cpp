@@ -160,7 +160,17 @@ int main (int argc, char* argv[]) {
                 std::cout << "[" << node_id << "] " << inet_ntoa(node->addr.sin_addr)
                     << ':' << ntohs(node->addr.sin_port) << " flags<" << (node->is_registered() ? 'R' : 'N')
                     << ((node->flags & NodeFlag::CONN_PROBLEMS) ? 'P' : '.')
-                    << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">\n";
+                    << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">";
+                
+                if (node->is_idle()) {
+                    std::cout << " IDLE";
+                
+                } else {
+                    std::cout << " RUNNING TASK [" << node->activeTaskGroup << "]";
+
+                }
+
+                std::cout << '\n';
             }
             state.mtx_nodes.unlock();
             std::cout.flush();

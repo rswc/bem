@@ -71,23 +71,27 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
 }
 
 void handleNotifyTaskMessage(State &state, int node_id, TaskNotifyMessage *msg) {
-    // std::cout << "[WT]: Node " << node_id << " sent Notification Message !" << std::endl;
-
     // maybe assert before handling that node exists?
     state.mtx_nodes.lock();
+    state.mtx_tasks.lock();
 
     if (state.nodeExists(node_id) && state.nodes[node_id]->is_registered()) {
-        state.nodes[node_id]->mark_response();
-        // double reply_time = state.nodes[node_id]->reply_time();
-        // std::cout << "[WT]: Reply took node [" << node_id << "] " << reply_time << " seconds!" << std::endl;
-        // if (msg->task_status == TS_RUNNING) {
-        //     std::cout << "Node is running task " << msg->task_id << std::endl;
-        // } else if (msg->task_status == TS_NONE) {
-        //     std::cout << "Node is currently idle " << std::endl;
-        // }
+        auto node = state.nodes[node_id];
+        
+        node->mark_response();
+
+        if (msg->task_status == TS_RUNNING) {
+            node->activeTaskGroup = state.tasks[msg->task_id]->group_id;
+
+        } else {
+            node->activeTaskGroup = TASK_ID_NONE;
+
+        }
+
     }
 
     state.mtx_nodes.unlock();
+    state.mtx_tasks.unlock();
 }
 
 void handleCoordinatorMessages(State &state) {
