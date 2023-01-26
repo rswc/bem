@@ -18,18 +18,23 @@ void from_json(const json& j, NodeConfig& c) {
     j.at("port").get_to(c.port);
     j.at("protocol_version").get_to(c.protocol_version);
     j.at("games_dir").get_to(c.games_dir);
-    j.at("game_launcher").get_to(c.games_dir);
+    j.at("game_launcher").get_to(c.game_launcher);
     j.at("gamelist").get_to(c.gamelist);
 }
 
 bool load_node_config_from_file(NodeConfig& config, const std::string& configpath) {
     if (!std::filesystem::exists(configpath)) {
-        std::cout << "[!] Cannot load node config: path <" << configpath << "> does not exist." << std::endl;
+        std::cerr << "[!] Cannot load node config: path <" << configpath << "> does not exist." << std::endl;
         return false;
     }
 
-    std::ifstream ifs(configpath);
-    config = json::parse(ifs);
+    try {
+        std::ifstream ifs(configpath);
+        config = json::parse(ifs);
+    } catch(json::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
 
     return true;
 }

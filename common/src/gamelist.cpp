@@ -20,14 +20,16 @@ bool verify_loaded_gamelist(const GameList& gl, const std::string& games_dir, co
         return false;
     }
 
-    if (!std::filesystem::exists(games_dir + "/" + game_launcher)) {
-        std::cerr << "[!] Games Launcher: " << game_launcher << " does not exist. Make sure it is located in " << games_dir << std::endl;
+    std::string launcher_path = games_dir + "/" + game_launcher;
+    if (!std::filesystem::exists(launcher_path)) {
+        std::cerr << "[!] Games Launcher: " << game_launcher << " does not exist. Make sure it is located in \"" << games_dir << "\" directory" << std::endl;
         return false;
     }
 
     bool valid = true;
-    for (const auto&[game_id, Game] : gl.games) {
-        std::cerr << "- " << Game.name << " : " << games_dir << " -> ";
+    std::cerr << "---------------------------------" << std::endl;
+    for (const auto&[game_id, game] : gl.games) {
+        std::cerr << "[" << game.game_id << "] " << game.name << " : " << game.dirname <<  " -> ";
         if (std::filesystem::exists(games_dir)) {
             std::cerr << "[OK]" << std::endl;
         } else {
@@ -35,19 +37,21 @@ bool verify_loaded_gamelist(const GameList& gl, const std::string& games_dir, co
             valid = false;
         }
         
-        for (const auto&[agent_id, Agent] : Game.agents) {
-            std::string relative_agent_jar = gl.get_agent_relative_path(game_id, agent_id);
-            std::string jar_path = games_dir + "/" + relative_agent_jar; 
-            
-            std::cerr << "--- " << Agent.name << " " << jar_path << " -> ";
-            if (std::filesystem::exists(jar_path)) {
-                std::cerr << "[OK]" << std::endl;
+        for (const auto&[agent_id, agent] : game.agents) {
+            std::string relative_agent_filepath = gl.get_agent_relative_path(game_id, agent_id);
+            std::string agent_filepath = games_dir + "/" + relative_agent_filepath;
+
+            std::cerr << " -- [" << agent.agent_id << "]: ";
+            if (std::filesystem::exists(agent_filepath)) {
+                std::cerr << "[OK]";
             } else {
-                std::cerr << "[ERROR]" << std::endl;
+                std::cerr << "[ERROR]";
                 valid = false;
             }
+            std::cerr << " - " << agent.name << " -> " << agent_filepath << std::endl;
         }
     }
+    std::cerr << "---------------------------------" << std::endl;
     return valid;
 }
 
