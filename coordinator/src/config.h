@@ -8,7 +8,6 @@
 struct CoordinatorConfig {
     uint16_t port;
     uint8_t protocol_version;
-    std::string games_dir; 
     GameList gamelist;
 };
 
