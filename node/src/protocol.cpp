@@ -4,39 +4,39 @@
 #include "messages.h"
 #include "graceful.h"
 
-void send_message(State& state, std::unique_ptr<BaseMessage> message) {
-    std::unique_lock<std::mutex> guard(state.mtx_sendQueue);
-    state.sendMessageQueue.push_back(std::move(message));
+void send_message(std::unique_ptr<BaseMessage> message) {
+    std::unique_lock<std::mutex> guard(getGlobalState().mtx_sendQueue);
+    getGlobalState().sendMessageQueue.push_back(std::move(message));
     guard.unlock();
-    state.cv_sendQueue.notify_one();
+    getGlobalState().cv_sendQueue.notify_one();
 }
 
-std::unique_ptr<BaseMessage> receive_message(State& state) {
-    std::unique_lock<std::mutex> guard(state.mtx_recvQueue);
-    state.cv_recvQueue.wait(guard, [&]() { 
-        return state.should_quit || !state.recvMessageQueue.empty(); 
+std::unique_ptr<BaseMessage> receive_message() {
+    std::unique_lock<std::mutex> guard(getGlobalState().mtx_recvQueue);
+    getGlobalState().cv_recvQueue.wait(guard, [&]() { 
+        return getGlobalState().should_quit || !getGlobalState().recvMessageQueue.empty(); 
     });
     
-    if (state.should_quit) return nullptr;
+    if (getGlobalState().should_quit) return nullptr;
 
-    auto msg = std::move(state.recvMessageQueue.front());
-    state.recvMessageQueue.pop_front();
+    auto msg = std::move(getGlobalState().recvMessageQueue.front());
+    getGlobalState().recvMessageQueue.pop_front();
     return msg;
 }
 
-bool register_to_coordinator(State &state) {
+bool register_to_coordinator() {
     std::cout << "Sending HELLO message to coordinator..." << std::endl;
-    state.mtx_config.lock();
+    getGlobalState().mtx_config.lock();
     auto hello_msg = std::make_unique<HelloMessage>();
-    hello_msg->init(state.config.protocol_version, HelloMessage::HelloFlag::NONE, state.config.gamelist);
-    send_message(state, std::move(hello_msg));
-    state.mtx_config.unlock();
+    hello_msg->init(getGlobalState().config.protocol_version, HelloMessage::HelloFlag::NONE, getGlobalState().config.gamelist);
+    send_message(std::move(hello_msg));
+    getGlobalState().mtx_config.unlock();
 
     bool sync_complete = false;
     while (!sync_complete) {
         std::cout << "Waiting for HELLO message from the coordinator..." << std::endl;
 
-        auto msg = receive_message(state);
+        auto msg = receive_message();
         
         if (msg->GetType() != BaseMessage::HELLO) {
             std::cout << "[!] Server returned message but its wrong." << std::endl;
@@ -67,12 +67,13 @@ bool register_to_coordinator(State &state) {
 }
 
 
-void wait_for_instructions_in_loop(State& state) {
-    while (!state.should_quit) {
-        std::cout << "Waiting for server instructions..." << std::endl;
+void wait_for_instructions_in_loop() {
+    std::cout << "[WFI]: Waiting for server instructions..." << std::endl;
 
-        // blocking
-        auto msg = receive_message(state);
+    while (!getGlobalState().should_quit) {
+
+        // blocking, might return NULL if terminating
+        auto msg = receive_message();
         
         if (msg == nullptr) {
             break;
@@ -82,36 +83,36 @@ void wait_for_instructions_in_loop(State& state) {
             case BaseMessage::TASK: {
                 TaskMessage *msg_ptr = dynamic_cast<TaskMessage*>(msg.get());
                 Task task = msg_ptr->task;
-                std::cout << "Received TASK. Appending to TaskQueue." << std::endl;
 
-                std::unique_lock<std::mutex> guard(state.mtx_taskQueue);
-                state.taskQueue.emplace_back(task);
+                std::unique_lock<std::mutex> guard(getGlobalState().mtx_taskQueue);
+                getGlobalState().taskQueue.emplace_back(task);
                 guard.unlock();
-                state.cv_taskQueue.notify_one();
+                getGlobalState().cv_taskQueue.notify_one();
             } break;
             case BaseMessage::TASK_NOTIFY: {
                 TaskNotifyMessage *msg_ptr = dynamic_cast<TaskNotifyMessage*>(msg.get());
-                std::cout << "Received NOTIFY. Sending Reply" << std::endl;
 
-                task_id_t task_id = msg_ptr->task_id;
-                TaskStatus ts = msg_ptr->task_status;
-                
                 switch (msg_ptr->task_status) {
                     case TaskStatus::TS_QUESTION: {
                         auto tn_msg = std::make_unique<TaskNotifyMessage>();
-                        tn_msg->task_id = state.current_task_id;
+                        tn_msg->task_id = getGlobalState().current_task_id;
                         
-                        if (state.current_task_id == TASK_ID_NONE) {
+                        if (getGlobalState().current_task_id == TASK_ID_NONE) {
                             tn_msg->task_status = TaskStatus::TS_NONE;
                         } 
                         else {
                             tn_msg->task_status = TaskStatus::TS_RUNNING;
                         }
-
-                        send_message(state, std::move(tn_msg));
+                        
+                        send_message(std::move(tn_msg));
                     } break;
                     case TaskStatus::TS_CANCELLED: {
-                        assert(0 && "<Panic>");
+                        if (msg_ptr->task_id == getGlobalState().current_task_id) {
+                            std::cerr << "Received CANCEL for " << msg_ptr->task_id << ". Canceling." << std::endl;
+                        } else {
+                            std::cerr << "[?] Received CANCEL for " << msg_ptr->task_id << ", but currently running: " 
+                                << getGlobalState().current_task_id << ". Ignoring." << std::endl;
+                        }
                     } break;
                     default: {
                         assert(0 && "Invalid TaskStatus: <Panic>");
@@ -124,5 +125,5 @@ void wait_for_instructions_in_loop(State& state) {
         }
     }
     std::cout << "[WFI]: Waiting for instruction loop broken. Returning." << std::endl;
-    terminate_program(state);
+    terminate_program();
 }

@@ -25,8 +25,6 @@ struct Game {
     games_id_t game_id;
     std::string name; 
     std::string dirname;
-    std::string filename;
-    std::string hash;
     std::unordered_map<games_id_t, Agent> agents;
 };
 
@@ -47,15 +45,13 @@ public:
     std::string get_game_name(games_id_t game_id) const {
         return games.at(game_id).name;
     }
-    std::string get_game_relative_jar_path(games_id_t game_id) const { 
-        return games.at(game_id).dirname + "/" + games.at(game_id).filename;
-    }
-    std::string get_agent_relative_jar_path(games_id_t game_id, games_id_t agent_id) const { 
-        return games.at(game_id).dirname + "/agents/" + games.at(game_id).agents.at(agent_id).filename;
+
+    std::string get_agent_relative_path(games_id_t game_id, games_id_t agent_id) const { 
+        return games.at(game_id).dirname + "/" + games.at(game_id).agents.at(agent_id).filename;
     }
 };
 
-bool verify_loaded_gamelist(const GameList& gl, const std::string& games_dir); 
+bool verify_loaded_gamelist(const GameList& gl, const std::string& games_dir, const std::string& game_launcher); 
 
 void to_json(json &j, const Agent& a);
 void from_json(const json &j, Agent & a);

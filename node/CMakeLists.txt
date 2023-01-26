@@ -11,6 +11,7 @@ target_sources(node
         src/protocol.cpp
         src/graceful.cpp
         src/execute.cpp
+        src/state.cpp
 )
 
 target_include_directories(node
