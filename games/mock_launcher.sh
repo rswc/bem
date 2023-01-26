@@ -23,11 +23,9 @@ reason=""
 winner=""
 seconds=$(bc <<< "scale=3;$5 / 1000")
 
-# Loop for the number of times specified by the random number
 for i in $(seq 1 $n_rounds); do
-    # Insert your instructions here
+
     echo "Playing round: $i, sleeping $seconds [s]." >&2
-    
     sleep $seconds 
     
     if [ $(( RANDOM % 100 )) -le "5" ]; then
@@ -37,9 +35,9 @@ for i in $(seq 1 $n_rounds); do
 done
 
 if [ $(expr $n_rounds % 2) != "0" ]; then
-    winner="PLAYER1"
+    winner="\"PLAYER1\""
 else 
-    winner="PLAYER2"
+    winner="\"PLAYER2\""
 fi
 
 echo "$1;$2;$winner;$reason;"
