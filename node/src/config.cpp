@@ -8,7 +8,7 @@ void to_json(json& j, const NodeConfig& c) {
         { "port", c.port }, 
         { "protocol_version", c.protocol_version },
         { "games_dir", c.games_dir }, 
-        { "game_executable", c.game_launcher }, 
+        { "game_launcher", c.game_launcher }, 
         { "gamelist", c.gamelist }
     };
 }
