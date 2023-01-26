@@ -9,9 +9,12 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
 
     std::cout << "[WT]: Node " << node_id << " sent RESULT for task id: " << task_id << std::endl;
     std::cout << "- " << res.games << " games played." << std::endl;
+    std::cout << "- " << res.failed_games << " games failed." << std::endl;
     std::cout << "- " << res.win_agent1 << " games won by agent1" << std::endl;
     std::cout << "- " << res.win_agent2 << " games won by agent2" << std::endl;
-    std::cout << "- " << res.games - res.win_agent1 - res.win_agent2 << " draws." << std::endl;
+    std::cout << "- " << res.timeout_agent1 << " times agent1 timed out (agent2 won)" << std::endl;
+    std::cout << "- " << res.timeout_agent2 << " times agent2 timed out (agent1 won)" << std::endl;
+    std::cout << "- " << res.games - res.failed_games - res.win_agent1 - res.win_agent2 << " draws." << std::endl;
 
     state.mtx_tasks.lock();
     state.mtx_groups.lock();

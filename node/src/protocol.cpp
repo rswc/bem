@@ -68,11 +68,11 @@ bool register_to_coordinator() {
 
 
 void wait_for_instructions_in_loop() {
+    std::cout << "[WFI]: Waiting for server instructions..." << std::endl;
 
     while (!getGlobalState().should_quit) {
-        std::cout << "Waiting for server instructions..." << std::endl;
 
-        // blocking
+        // blocking, might return NULL if terminating
         auto msg = receive_message();
         
         if (msg == nullptr) {
@@ -83,7 +83,6 @@ void wait_for_instructions_in_loop() {
             case BaseMessage::TASK: {
                 TaskMessage *msg_ptr = dynamic_cast<TaskMessage*>(msg.get());
                 Task task = msg_ptr->task;
-                std::cout << "Received TASK. Appending to TaskQueue." << std::endl;
 
                 std::unique_lock<std::mutex> guard(getGlobalState().mtx_taskQueue);
                 getGlobalState().taskQueue.emplace_back(task);
@@ -92,11 +91,7 @@ void wait_for_instructions_in_loop() {
             } break;
             case BaseMessage::TASK_NOTIFY: {
                 TaskNotifyMessage *msg_ptr = dynamic_cast<TaskNotifyMessage*>(msg.get());
-                std::cout << "Received NOTIFY. Sending Reply" << std::endl;
 
-                task_id_t task_id = msg_ptr->task_id;
-                TaskStatus ts = msg_ptr->task_status;
-                
                 switch (msg_ptr->task_status) {
                     case TaskStatus::TS_QUESTION: {
                         auto tn_msg = std::make_unique<TaskNotifyMessage>();
@@ -112,7 +107,12 @@ void wait_for_instructions_in_loop() {
                         send_message(std::move(tn_msg));
                     } break;
                     case TaskStatus::TS_CANCELLED: {
-                        assert(0 && "<Panic>");
+                        if (msg_ptr->task_id == getGlobalState().current_task_id) {
+                            std::cerr << "Received CANCEL for " << msg_ptr->task_id << ". Canceling." << std::endl;
+                        } else {
+                            std::cerr << "[?] Received CANCEL for " << msg_ptr->task_id << ", but currently running: " 
+                                << getGlobalState().current_task_id << ". Ignoring." << std::endl;
+                        }
                     } break;
                     default: {
                         assert(0 && "Invalid TaskStatus: <Panic>");

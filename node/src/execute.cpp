@@ -2,11 +2,28 @@
 #include "graceful.h"
 #include "messages.h"
 #include "protocol.h"
+#include "state.h"
 
 #include <thread> // this_thread::sleep_for
 #include <memory> // make_unique
 #include <chrono> // std::chrono::seconds
 #include <iostream>
+
+#define GAME_OUTPUT_BUFFER_SIZE 16
+
+// GameOutcomeFlags
+enum {
+    GOF_NONE = 0,
+    GOF_GAME_EXCEPTION = 1 << 0,
+    GOF_PLAYER1_WINNER = 1 << 1,
+    GOF_PLAYER2_WINNER = 1 << 2,
+    GOF_REASON_TIMEOUT = 1 << 3
+};
+
+int launch_subprocess(const std::string& command);
+std::string prepare_command(const std::string& games_dir, const std::string& game_name, const std::string& game_jar, 
+    const std::string& agent1_jar, const std::string& agent2_jar,  
+    uint32_t move_limit_ms, uint32_t board_size);
 
 void execute_tasks_in_loop() {
     while (!getGlobalState().should_quit) {
@@ -21,14 +38,22 @@ void execute_tasks_in_loop() {
         getGlobalState().taskQueue.pop_front();
         guard.unlock();
         
+        // only this line can modify current id from NONE
         getGlobalState().current_task_id = task.id;
         Result result = execute_task(task);
-        std::cout << "[ET]: Task with id " << task.id << ", done. Sending result." << std::endl;
 
-        auto result_msg = std::make_unique<ResultMessage>();
-        result_msg->init(task.id, result);
-        send_message(std::move(result_msg));
-        getGlobalState().current_task_id = TASK_ID_NONE;
+        // break from the game, dont sent incorrect results
+        if (getGlobalState().should_quit) break;
+
+        if (getGlobalState().current_task_id == TASK_ID_NONE) {
+            std::cout << "[ET]: Task with id " << task.id << " CANCELED. Ignoring result" << std::endl; 
+        } else {
+            std::cout << "[ET]: Task with id " << task.id << ", DONE. Sending result." << std::endl;
+            auto result_msg = std::make_unique<ResultMessage>();
+            result_msg->init(task.id, result);
+            send_message(std::move(result_msg));
+            getGlobalState().current_task_id = TASK_ID_NONE;
+        }
     }
     std::cerr << "[ET]: Execute tasks loop broken. Returning" << std::endl;
     terminate_program();
@@ -46,7 +71,7 @@ std::string prepare_command(const std::string& games_dir, const std::string& gam
     ss << " " << board_size;
     ss << " " << move_limit_ms;
     // ignore stderr
-    ss << " 2> /dev/null";
+    // ss << " 2> /dev/null";
 
     return ss.str();
 }
@@ -64,40 +89,52 @@ Result execute_task(const Task& task) {
     std::string game_command = prepare_command(games_dir, game_launcher, game_name, ag1_path, ag2_path, task.move_limit_ms, task.board_size);
     
     std::cout << "[ET]: running: " << game_command << std::endl;
+
     Result result;
-    result.games = 0;
-    result.win_agent1 = 0;
-    result.win_agent2 = 0;
-    
     for (uint32_t i = 0u; i < task.games; i++) {
-        int winner = 0; // 1 if first, 2 if second, 0 if draft
-        bool exited_safely = launch_subprocess(game_command, winner);
-        if (!exited_safely) {
+        if (getGlobalState().should_quit || getGlobalState().current_task_id == TASK_ID_NONE) 
+            break;
+
+        int flags = launch_subprocess(game_command);
+        result.games++;
+
+        if (flags & GOF_GAME_EXCEPTION) {
+            result.failed_games++;
             continue;
         }
-        
-        result.games++;
-        if (winner & 1) result.win_agent1++;
-        if (winner & 2) result.win_agent2++;
+
+        if (flags & GOF_PLAYER1_WINNER) {
+            result.win_agent1++;
+            if (flags & GOF_REASON_TIMEOUT) {
+                result.timeout_agent2++;
+            }
+        }
+        if (flags & GOF_PLAYER2_WINNER) {
+            result.win_agent2++;
+            if (flags & GOF_REASON_TIMEOUT) {
+                result.timeout_agent1++;
+            }
+        }
     }
 
     return result;
 }
 
-bool launch_subprocess(const std::string& command, int& winner) {
+int launch_subprocess(const std::string& command) {
     FILE* pipe = popen(command.c_str(), "r");
-    if (!pipe) return false;
+    if (!pipe) return GOF_GAME_EXCEPTION;
     
-    char buffer[128];
+    char buffer[GAME_OUTPUT_BUFFER_SIZE];
     std::string result = "";
     while(!feof(pipe) && !getGlobalState().should_quit) {
-    	if(fgets(buffer, 128, pipe) != NULL)
+    	if(fgets(buffer, GAME_OUTPUT_BUFFER_SIZE, pipe) != NULL)
     		result += buffer;
     }
+    int status = pclose(pipe);
+    if (WEXITSTATUS(status) != 0) {
+        return GOF_GAME_EXCEPTION;
+    }
 
-    pclose(pipe);
-    std::cout << "[EJ]: Popen printed " << result.size() << " characters." << std::endl;
-    
     std::stringstream ss(result);
     std::cout << "[EJ]: " << ss.str() << std::endl;
     
@@ -111,17 +148,16 @@ bool launch_subprocess(const std::string& command, int& winner) {
     std::getline(ss, win_prompt, ';');
     std::getline(ss, reason, ';');
 
-    std::cout << "agent1: " << agent1_name << std::endl;
-    std::cout << "agent2: " << agent2_name << std::endl;
-    std::cout << "win_prompt: " << win_prompt << std::endl;
-
-    if (win_prompt == "\"PLAYER1\"") {
-        winner = 1;
-    } else if (win_prompt == "\"PLAYER2\"") {
-        winner = 2;
-    } else {
-        winner = 0;
+    int game_outcome = GOF_NONE;
+    if (reason == "TIMEOUT") {
+        game_outcome |= GOF_REASON_TIMEOUT;
     }
 
-    return true;
+    if (win_prompt == "\"PLAYER1\"") {
+        game_outcome |= GOF_PLAYER1_WINNER;
+    } else if (win_prompt == "\"PLAYER2\"") {
+        game_outcome |= GOF_PLAYER2_WINNER;
+    } 
+
+    return game_outcome;
 }
