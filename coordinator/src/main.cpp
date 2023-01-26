@@ -168,7 +168,6 @@ int main (int argc, char* argv[]) {
                 assert(node_id == node->id);
                 std::cout << "[" << node_id << "] " << inet_ntoa(node->addr.sin_addr)
                     << ':' << ntohs(node->addr.sin_port) << " flags<" << (node->is_registered() ? 'R' : 'N')
-                    << ((node->flags & NodeFlag::CONN_PROBLEMS) ? 'P' : '.')
                     << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">";
                 
                 if (node->is_idle()) {
