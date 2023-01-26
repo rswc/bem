@@ -79,12 +79,24 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
 void handleNotifyTaskMessage(State &state, int node_id, TaskNotifyMessage *msg) {
     // maybe assert before handling that node exists?
     state.mtx_nodes.lock();
+    state.mtx_tasks.lock();
 
     if (state.nodeExists(node_id) && state.nodes[node_id]->is_registered()) {
-        state.nodes[node_id]->mark_response();
+        auto node = state.nodes[node_id];
+        
+        node->mark_response();
+
+        if (msg->task_status == TS_RUNNING) {
+            node->activeTaskGroup = state.tasks[msg->task_id]->group_id;
+
+        } else {
+            node->activeTaskGroup = TASK_ID_NONE;
+
+        }
     }
 
     state.mtx_nodes.unlock();
+    state.mtx_tasks.unlock();
 }
 
 void handleCoordinatorMessages(State &state) {
@@ -100,7 +112,6 @@ void handleCoordinatorMessages(State &state) {
         guard.unlock();
 
         switch (msg->GetType()) {
-            case BaseMessage::NONE: break;
             case BaseMessage::RESULT: {
                 ResultMessage *msg_ptr = dynamic_cast<ResultMessage*>(msg.get());
                 handleResultMessage(state, node_id, msg_ptr); 
@@ -112,6 +123,9 @@ void handleCoordinatorMessages(State &state) {
             case BaseMessage::TASK_NOTIFY: {
                 TaskNotifyMessage *msg_ptr = dynamic_cast<TaskNotifyMessage*>(msg.get());
                 handleNotifyTaskMessage(state, node_id, msg_ptr);
+            } break;
+            case BaseMessage::NONE: {
+                state.terminateNode(node_id);
             } break;
             default: {
                 assert(0 && "Handler not implemented!");

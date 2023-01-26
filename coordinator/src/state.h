@@ -34,5 +34,24 @@ struct State
     bool shouldQuit = false;
     bool nodeExists(int node_id) { return nodes.find(node_id) != nodes.end(); }
     bool groupExists(int group_id) { return groups.find(group_id) != groups.end(); }
+    
+    void terminateNode(node_id_t nid)
+    {
+        mtx_nodes.lock();
+        
+        if (!nodeExists(nid)) {
+            mtx_nodes.unlock();
+            return;
+        }
+
+        // TODO: add gracefuly killing threads, destroying resources
+        // TODO: WR or RDWR? Maybe node can send result? 
+        shutdown(nodes[nid]->socket, SHUT_WR);
+        nodes.erase(nid);
+
+        mtx_nodes.unlock();
+        
+        balanceTasks(*this);
+    }
 };
 

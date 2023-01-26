@@ -11,7 +11,7 @@ BaseMessage::MessageBuffer InvalidMessage::Serialize() const
     return BaseMessage::MessageBuffer();
 }
 
-void InvalidMessage::Deserialize(MessageBuffer& __attribute__((unused)) buffer)
+void InvalidMessage::Deserialize(__attribute__((unused)) MessageBuffer& buffer)
 {
     // Do nothing
 }

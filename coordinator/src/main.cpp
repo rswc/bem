@@ -27,11 +27,12 @@ bool setup(State& state, const std::string& configpath) {
 }
 
 int main (int argc, char* argv[]) {
-
-    // TODO: load config path from argv
-
+    std::string configpath = std::string(DEFAULT_CONFIG_FILENAME);
+    if (argc == 2) {
+        configpath = std::string(argv[1]);
+    } 
+    
     State state;
-    std::string configpath = "coordinator.json";
     bool result = setup(state, configpath);
     
     if (!result) {
@@ -42,6 +43,9 @@ int main (int argc, char* argv[]) {
     std::thread t_acc(acceptConnections, state.config.port, std::ref(state));
     std::thread t_handler(handleCoordinatorMessages, std::ref(state));
     std::thread t_maintenance(doMaintenance, std::ref(state));
+
+    std::cout << "= Bot Evaluation Machine v1.0\n= \n=  Iusiurandum, patri datum, usque\n"
+            << "=  ad hanc diem ita servavi\n= \n= Type 'help' to view available commands." << std::endl;
     
     // Temporary scuff interface
     std::string cmd, token;
@@ -50,7 +54,19 @@ int main (int argc, char* argv[]) {
         std::cout << "> ";
         std::cin >> cmd;
 
-        if (cmd == "notify") {
+        if (cmd == "help" || cmd == "?") {
+            std::cout << "List of available commands:\n"
+                << " - help - Show this list\n"
+                << " - terminate <NODE_ID> - Terminate connection to node with the specified id\n"
+                << " - nodes - List all nodes in this system\n"
+                << " - tasks - List all tasks in this system\n"
+                << " - games - List all games recognized by this system\n"
+                << " - cancel <TASK_ID> - Cancel task with the specified id\n"
+                << " - task <GAME_ID> <AGENT_1> <AGENT_2> <BOARD_SIZE> <MOVE_LIMIT_MS> <NUM_GAMES>\n"
+                << "     - Create new task. NUM_GAMES battles of game identified by GAME_ID\n"
+                << "       between AGENT_1 and AGENT_2 will be performed" << std::endl;
+
+        } else if (cmd == "notify") {
             int nid;
             std::cin >> nid;
 
@@ -71,16 +87,8 @@ int main (int argc, char* argv[]) {
             int nid;
             std::cin >> nid;
 
-            state.mtx_nodes.lock();
-            if (state.nodeExists(nid)) {
-                // TODO: add gracefuly killing threads, destroying resources
-                // TODO: WR or RDWR? Maybe node can send result? 
-                shutdown(state.nodes[nid]->socket, SHUT_WR);
-                state.nodes.erase(nid);
-            } else {
-                std::cout << "Node with such ID does not exist." << std::endl;
-            }
-            state.mtx_nodes.unlock();
+            state.terminateNode(nid);
+
         }
         else if (cmd == "task")
         {
@@ -160,7 +168,17 @@ int main (int argc, char* argv[]) {
                 std::cout << "[" << node_id << "] " << inet_ntoa(node->addr.sin_addr)
                     << ':' << ntohs(node->addr.sin_port) << " flags<" << (node->is_registered() ? 'R' : 'N')
                     << ((node->flags & NodeFlag::CONN_PROBLEMS) ? 'P' : '.')
-                    << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">\n";
+                    << ((node->flags & NodeFlag::CONN_BROKEN) ? 'B' : '.') << ">";
+                
+                if (node->is_idle()) {
+                    std::cout << " IDLE";
+                
+                } else {
+                    std::cout << " RUNNING TASK [" << node->activeTaskGroup << "]";
+
+                }
+
+                std::cout << '\n';
             }
             state.mtx_nodes.unlock();
             std::cout.flush();

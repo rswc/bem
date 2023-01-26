@@ -1,8 +1,6 @@
 #include "config.h"
 #include "json.hpp"
 
-const std::string DEFAULT_CONFIG_FILENAME = "coordinator.json";
-
 void to_json(json& j, const CoordinatorConfig& c) {
     j = json { 
         { "port", c.port },  

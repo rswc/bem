@@ -42,13 +42,13 @@ private:
     
 
 public:
-
     std::vector<std::shared_ptr<Task>> tasks;
     int socket;
     GameList gamelist;
     node_id_t id = NODE_ID_NONE;
     sockaddr_in addr{0};
     socklen_t addrSize = sizeof(addr);
+    task_id_t activeTaskGroup = TASK_ID_NONE;
     
     std::chrono::time_point<std::chrono::system_clock> response_ts, request_ts; 
 
@@ -79,6 +79,10 @@ public:
     }
     bool awaiting_response() const {
         return response_ts < request_ts;
+    }
+
+    bool is_idle() const {
+        return activeTaskGroup == TASK_ID_NONE;
     }
 };
 
