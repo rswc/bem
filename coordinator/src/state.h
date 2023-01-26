@@ -44,6 +44,7 @@ struct State
         mtx_nodes.lock();
         
         if (!nodeExists(nid)) {
+            std::cerr << "[TN]: Node with id = " << nid << " does not exist" << std::endl;
             mtx_nodes.unlock();
             return;
         }
