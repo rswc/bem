@@ -51,8 +51,7 @@ void handleHelloMessage(State &state, int node_id, HelloMessage *msg) {
         state.nodes[node_id]->mark_registered();
         std::cout << "[WT]: Set node " << node_id << " as REGISTERED. Sending Hello Response" << std::endl;
         state.nodes[node_id]->gamelist = msg->gamelist(); 
-        state.nodes[node_id]->gamelist.print();
-        std::cout.flush();
+        // state.nodes[node_id]->gamelist.print(); std::cout.flush();
 
         GameList empty_gl;
         auto hello_msg = std::make_unique<HelloMessage>();
