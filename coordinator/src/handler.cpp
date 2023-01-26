@@ -17,19 +17,22 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
     state.mtx_groups.lock();
 
     auto task = state.tasks[task_id];
-    auto group = state.groups[task->group_id];
 
-    group->remaining_tasks--;
-    group->aggregate_result = group->aggregate_result.merge(res);
+    if (task->status == TS_RUNNING) {
+        auto group = state.groups[task->group_id];
 
-    std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
+        group->remaining_tasks--;
+        group->aggregate_result = group->aggregate_result.merge(res);
 
-    if (group->remaining_tasks == 0) {
-        group->status = TS_DONE;
-        std::cout << "- GROUP [" << group->id << "] has finished processing." << std::endl;
-        std::cout << "-- Total of " << group->aggregate_result.games << " games played. " << std::endl;
-        std::cout << "-- Total of " << group->aggregate_result.win_agent1 << " won by agent 1. " << std::endl;
-        std::cout << "-- Total of " << group->aggregate_result.win_agent2 << " won by agent 2. " << std::endl;
+        std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
+
+        if (group->remaining_tasks == 0) {
+            group->status = TS_DONE;
+            std::cout << "- GROUP [" << group->id << "] has finished processing." << std::endl;
+            std::cout << "-- Total of " << group->aggregate_result.games << " games played. " << std::endl;
+            std::cout << "-- Total of " << group->aggregate_result.win_agent1 << " won by agent 1. " << std::endl;
+            std::cout << "-- Total of " << group->aggregate_result.win_agent2 << " won by agent 2. " << std::endl;
+        }
     }
 
     state.mtx_tasks.unlock();
@@ -87,7 +90,6 @@ void handleNotifyTaskMessage(State &state, int node_id, TaskNotifyMessage *msg) 
             node->activeTaskGroup = TASK_ID_NONE;
 
         }
-
     }
 
     state.mtx_nodes.unlock();
