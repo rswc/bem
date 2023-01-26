@@ -54,12 +54,7 @@ void Node::Send(std::unique_ptr<BaseMessage> message)
 std::vector<node_id_t> get_eligible_nodes_for_task(State& state, const Task& task) {
     std::vector<node_id_t> eligible_ids;
     
-    std::cout << "Given task: " << task.game_id << ", " << task.agent1 << ", " << task.agent2 << std::endl;
-    state.mtx_nodes.lock();
     for (const auto&[node_id, node] : state.nodes) {
-        
-        std::cout << "Hello: " << node_id << ", " << node->is_registered() << ", " << node->gamelist.contains_game(task.game_id) << std::endl;
-        
         if (!node->is_registered()) continue;
         if (node->flags & NodeFlag::CONN_BROKEN) continue;
         if (!node->gamelist.contains_game(task.game_id)) continue;
@@ -72,7 +67,7 @@ std::vector<node_id_t> get_eligible_nodes_for_task(State& state, const Task& tas
         }
         
     }
-    state.mtx_nodes.unlock();
+    
     return eligible_ids;
 }
 
@@ -93,11 +88,7 @@ void balanceTasks(State& state) {
     for (auto& [tid, task] : state.tasks) {
         
         if (task->status == TS_NONE) {
-
-            // get eligible nodes zajmuje mutex
-            state.mtx_nodes.unlock();
             auto node_ids = get_eligible_nodes_for_task(state, *task);
-            state.mtx_nodes.lock();
 
             if (node_ids.empty()) continue;
 

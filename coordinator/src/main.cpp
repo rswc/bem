@@ -105,7 +105,9 @@ int main (int argc, char* argv[]) {
             Task task;
             task.init(TASK_ID_NONE, TASK_ID_NONE, gid, ag1, ag2, board_size, move_limit_ms, games);
 
+            state.mtx_nodes.lock();
             auto node_ids = get_eligible_nodes_for_task(state, task);
+            state.mtx_nodes.unlock();
 
             std::cout << "Node ids for given task: [";
             for (auto node_id : node_ids) {
