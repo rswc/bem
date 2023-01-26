@@ -126,7 +126,7 @@ int launch_subprocess(const std::string& command) {
     
     char buffer[GAME_OUTPUT_BUFFER_SIZE];
     std::string result = "";
-    while(!feof(pipe) && !getGlobalState().should_quit) {
+    while(!feof(pipe) && !getGlobalState().should_quit && getGlobalState().current_task_id != TASK_ID_NONE) {
     	if(fgets(buffer, GAME_OUTPUT_BUFFER_SIZE, pipe) != NULL)
     		result += buffer;
     }
