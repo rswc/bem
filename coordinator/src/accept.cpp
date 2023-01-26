@@ -32,11 +32,12 @@ void acceptConnections(int port, State& state)
 
     setReuseAddr(entrySocket);
     
-    sockaddr_in entryAddr {
-        .sin_family=AF_INET,
-        .sin_port=htons(port),
-        .sin_addr={INADDR_ANY}
-    };
+    sockaddr_in entryAddr;
+    std::memset(&entryAddr, 0, sizeof(sockaddr_in));
+    entryAddr.sin_family = AF_INET;
+    entryAddr.sin_port = htons(port);
+    entryAddr.sin_addr = { INADDR_ANY };
+
     if (bind(entrySocket, (sockaddr*) &entryAddr, sizeof(entryAddr)))
     {
         error(1, errno, "bind failed");

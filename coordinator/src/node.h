@@ -42,11 +42,13 @@ private:
     
 
 public:
-    std::vector<std::shared_ptr<Task>> tasks;
+    Node() { std::memset(&addr, 0, sizeof(sockaddr_in)); }
+
+    std::vector<std::shared_ptr<Task>> tasks; 
     int socket;
     GameList gamelist;
     node_id_t id = NODE_ID_NONE;
-    sockaddr_in addr{0};
+    sockaddr_in addr;
     socklen_t addrSize = sizeof(addr);
     task_id_t activeTaskGroup = TASK_ID_NONE;
     
