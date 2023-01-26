@@ -4,12 +4,9 @@
 
 void doMaintenance(State &state) {
 
-    bool tasksNeedBalancing;
 
     while (!state.shouldQuit)
     {
-        tasksNeedBalancing = false;
-
         state.mtx_nodes.lock();
         state.mtx_tasks.lock();
         
@@ -30,6 +27,8 @@ void doMaintenance(State &state) {
                     node->flags &= ~NodeFlag::CONN_BROKEN;
 
                     std::cout << "[MNCE] Connection with Node #" << nid << " restored \n";
+                    // Probably node can take work of others?
+                    state.suspectedBalancing = true;
                 }
 
             } else if (node->time_from_request() > 5. && !(node->flags & NodeFlag::CONN_BROKEN)) {
@@ -47,7 +46,8 @@ void doMaintenance(State &state) {
 
                         node->UnassignTask(task);
 
-                        tasksNeedBalancing = true;
+                        // does not require a mutex
+                        state.suspectedBalancing = true;
                     }
                 }
 
@@ -58,15 +58,15 @@ void doMaintenance(State &state) {
             // else if (node->time_from_request() > 3600. && (node->flags & NodeFlag::CONN_BROKEN)) {
             //     // shutdown, remove node from state
             // }
-
-        }
-
-        if (tasksNeedBalancing) {
-            balanceTasks(state);
         }
 
         state.mtx_nodes.unlock();
         state.mtx_tasks.unlock();
+
+        if (state.suspectedBalancing) {
+            balanceTasks(state);
+        }
+
 
         // TODO: read from config?
         std::this_thread::sleep_for(std::chrono::seconds(2));

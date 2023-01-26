@@ -5,6 +5,7 @@
 #include <thread>
 #include <memory>
 #include <unordered_map>
+#include <atomic>
 
 #include "node.h"
 #include "task.h"
@@ -31,7 +32,10 @@ struct State
     std::mutex mtx_recvQueue;
     std::condition_variable cv_recvQueue;
     
-    bool shouldQuit = false;
+    std::atomic<bool> shouldQuit = false;
+    std::atomic<bool> suspectedBalancing = false;
+    std::mutex mtx_taskBalancing;
+
     bool nodeExists(int node_id) { return nodes.find(node_id) != nodes.end(); }
     bool groupExists(int group_id) { return groups.find(group_id) != groups.end(); }
     
