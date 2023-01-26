@@ -30,7 +30,7 @@ void Node::UnassignTask(std::shared_ptr<Task> task)
         return;
     
     tasks.erase(it_task);
-    
+
     auto msg = std::make_unique<TaskNotifyMessage>();
     msg->task_id = task->id;
     msg->task_status = TS_CANCELLED;
@@ -87,7 +87,10 @@ void balanceTasks(State& state) {
         
         if (task->status == TS_NONE) {
 
+            // get eligible nodes zajmuje mutex
+            state.mtx_nodes.unlock();
             auto node_ids = get_eligible_nodes_for_task(state, *task);
+            state.mtx_nodes.lock();
 
             if (node_ids.empty()) continue;
 
