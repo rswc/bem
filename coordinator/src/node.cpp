@@ -103,6 +103,7 @@ void balanceTasks(State& state) {
 
             // TODO: better algorithm for finding most suitable node
             state.nodes[node_ids[0]]->AssignTask(task);
+            task->status = TS_RUNNING;
 
         }
 
