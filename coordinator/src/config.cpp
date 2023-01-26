@@ -19,11 +19,17 @@ void from_json(const json& j, CoordinatorConfig& c) {
 
 bool load_config_from_file(CoordinatorConfig& config, const std::string& configpath = DEFAULT_CONFIG_FILENAME) {
     if (!std::filesystem::exists(configpath)) {
-        std::cout << "[!] Cannot load coordinator config: path <" << configpath << "> does not exist." << std::endl;
+        std::cerr << "[!] Cannot load coordinator config: path <" << configpath << "> does not exist." << std::endl;
         return false;
     }
 
-    std::ifstream ifs(configpath);
-    config = json::parse(ifs);
+    try {
+        std::ifstream ifs(configpath);
+        config = json::parse(ifs);
+    } catch(json::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return false;
+    }
+
     return true;
 }
