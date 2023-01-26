@@ -66,23 +66,7 @@ int main (int argc, char* argv[]) {
                 << "     - Create new task. NUM_GAMES battles of game identified by GAME_ID\n"
                 << "       between AGENT_1 and AGENT_2 will be performed" << std::endl;
 
-        } else if (cmd == "notify") {
-            int nid;
-            std::cin >> nid;
-
-            auto msg = std::make_unique<TaskNotifyMessage>();
-            msg->task_id = TASK_ID_NONE;
-            msg->task_status = TS_QUESTION;
-
-            state.mtx_nodes.lock();
-            if (state.nodeExists(nid) && state.nodes[nid]->is_registered()) {
-                state.nodes[nid]->mark_request();
-                state.nodes[nid]->Send(std::move(msg));
-            } else {
-                std::cout << "Node with such ID does not exist or is not registered." << std::endl;
-            }
-            state.mtx_nodes.unlock();
-        }
+        } 
         else if (cmd == "terminate") {
             int nid;
             std::cin >> nid;
