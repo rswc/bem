@@ -8,6 +8,7 @@ void to_json(json& j, const NodeConfig& c) {
         { "port", c.port }, 
         { "protocol_version", c.protocol_version },
         { "games_dir", c.games_dir }, 
+        { "game_executable", c.game_launcher }, 
         { "gamelist", c.gamelist }
     };
 }
@@ -17,6 +18,7 @@ void from_json(const json& j, NodeConfig& c) {
     j.at("port").get_to(c.port);
     j.at("protocol_version").get_to(c.protocol_version);
     j.at("games_dir").get_to(c.games_dir);
+    j.at("game_launcher").get_to(c.games_dir);
     j.at("gamelist").get_to(c.gamelist);
 }
 
@@ -28,5 +30,6 @@ bool load_node_config_from_file(NodeConfig& config, const std::string& configpat
 
     std::ifstream ifs(configpath);
     config = json::parse(ifs);
+
     return true;
 }

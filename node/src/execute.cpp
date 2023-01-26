@@ -34,15 +34,14 @@ void execute_tasks_in_loop() {
     terminate_program();
 }
 
-std::string prepare_command(const std::string& games_dir, const std::string& game_name, const std::string& game_jar, 
-    const std::string& agent1_jar, const std::string& agent2_jar,  
+std::string prepare_command(const std::string& games_dir, const std::string& game_launcher, 
+    const std::string& game_name, const std::string& agent1_path, const std::string& agent2_path,  
     uint32_t move_limit_ms, uint32_t board_size) {
 
     std::stringstream ss;
-    ss << "java -jar";
-    ss << " " << games_dir << "/" << game_jar;
-    ss << " " << games_dir << "/" << agent1_jar;
-    ss << " " << games_dir << "/" << agent2_jar;
+    ss << " " << games_dir << "/" << game_launcher;
+    ss << " " << games_dir << "/" << agent1_path;
+    ss << " " << games_dir << "/" << agent2_path;
     ss << " " << game_name;
     ss << " " << board_size;
     ss << " " << move_limit_ms;
@@ -55,14 +54,14 @@ std::string prepare_command(const std::string& games_dir, const std::string& gam
 Result execute_task(const Task& task) {
     
     getGlobalState().mtx_config.lock();
+    std::string game_launcher = getGlobalState().config.game_launcher;
     std::string games_dir = getGlobalState().config.games_dir;
     std::string game_name = getGlobalState().config.gamelist.get_game_name(task.game_id);
-    std::string game_jar = getGlobalState().config.gamelist.get_game_relative_jar_path(task.game_id);
-    std::string ag1_jar = getGlobalState().config.gamelist.get_agent_relative_jar_path(task.game_id, task.agent1);
-    std::string ag2_jar = getGlobalState().config.gamelist.get_agent_relative_jar_path(task.game_id, task.agent2);
+    std::string ag1_path = getGlobalState().config.gamelist.get_agent_relative_path(task.game_id, task.agent1);
+    std::string ag2_path = getGlobalState().config.gamelist.get_agent_relative_path(task.game_id, task.agent2);
     getGlobalState().mtx_config.unlock();
     
-    std::string game_command = prepare_command(games_dir, game_name, game_jar, ag1_jar, ag2_jar, task.move_limit_ms, task.board_size);
+    std::string game_command = prepare_command(games_dir, game_launcher, game_name, ag1_path, ag2_path, task.move_limit_ms, task.board_size);
     
     std::cout << "[ET]: running: " << game_command << std::endl;
     Result result;
@@ -73,7 +72,9 @@ Result execute_task(const Task& task) {
     for (uint32_t i = 0u; i < task.games; i++) {
         int winner = 0; // 1 if first, 2 if second, 0 if draft
         bool exited_safely = launch_subprocess(game_command, winner);
-        if (!exited_safely) continue;
+        if (!exited_safely) {
+            continue;
+        }
         
         result.games++;
         if (winner & 1) result.win_agent1++;
@@ -103,10 +104,12 @@ bool launch_subprocess(const std::string& command, int& winner) {
     std::string agent1_name;
     std::string agent2_name;
     std::string win_prompt;
+    std::string reason;
     
     std::getline(ss, agent1_name, ';');
     std::getline(ss, agent2_name, ';');
     std::getline(ss, win_prompt, ';');
+    std::getline(ss, reason, ';');
 
     std::cout << "agent1: " << agent1_name << std::endl;
     std::cout << "agent2: " << agent2_name << std::endl;

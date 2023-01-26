@@ -1,28 +1,52 @@
 {
     "port" : 12345,
     "host" : "localhost",
-    "protocol_version" : 4,
+    "protocol_version" : 5,
     "games_dir" : "games",
+    "game_launcher" : "mock_launcher.sh",
     "gamelist" : {
         "games": [
             {
                 "id" : 1,
-                "name": "migration",
+                "name": "Migration",
                 "dirname" : "migration",
-                "filename" : "migration.jar",
-                "hash" : "234234",
                 "agents": [
                     {
                         "id" : 1,
                         "name" : "Monte Carlo Tree Search Bot",
-                        "filename" : "MCTSPlayer.jar",
+                        "filename" : "MCTSPlayer.sh",
                         "hash" : "234234"
                     },
                     {
                         "id" : 2,
-                        "name" : "Test Bot (Random Moves)",
-                        "filename" : "NaivePlayer.jar",
+                        "name" : "Minmax Player",
+                        "filename" : "MinMaxPlayer.sh",
                         "hash" : "234234"
+                    },
+                    {
+                        "id" : 3,
+                        "name" : "AlfaBeta Player",
+                        "filename" : "AlfaBetaPlayer.sh",
+                        "hash" : "234234"
+                    }
+                ]
+            },
+            {
+                "id" : 2,
+                "name": "TicTacToe",
+                "dirname" : "tictactoe",
+                "agents": [
+                    {
+                        "id" : 1,
+                        "name" : "(very) Good Player",
+                        "filename" : "GoodPlayer.sh",
+                        "hash" : "123456"
+                    },
+                    {
+                        "id" : 2,
+                        "name" : "Pretty (not) Random Player",
+                        "filename" : "RandomPlayer.sh",
+                        "hash" : "123456"
                     }
                 ]
             }

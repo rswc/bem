@@ -31,9 +31,13 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
     
-    bool gamelist_valid = verify_loaded_gamelist(getGlobalState().config.gamelist, getGlobalState().config.games_dir);
+    bool gamelist_valid = verify_loaded_gamelist(
+        getGlobalState().config.gamelist, 
+        getGlobalState().config.games_dir,
+        getGlobalState().config.game_launcher
+    );
     if (!gamelist_valid) {
-        std::cerr << "[!] Validating GameList resulted in failure. Make sure all JAR files are present." << std::endl;
+        std::cerr << "[!] Validating GameList resulted in failure. Make sure all game files are present." << std::endl;
         return 1;
     }
 
