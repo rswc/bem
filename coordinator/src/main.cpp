@@ -147,6 +147,7 @@ int main (int argc, char* argv[]) {
                     Task tt = task;
                     tt.id = next_task_id++;
                     tt.games = n_games[i];
+                    tt.status = TS_RUNNING;
 
                     auto ttp = std::make_shared<Task>(tt);
 

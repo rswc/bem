@@ -65,6 +65,12 @@ void acceptConnections(int port, State& state)
             continue;
         } 
 
+        // TODO: make sure not to move below with Node mutex active?
+        // If balancer at the same moment is trying to load
+        state.mtx_taskBalancing.lock();
+        state.suspectedBalancing = true;
+        state.mtx_taskBalancing.unlock();
+
         newNode->socket = nodeSocket;
         node_id_t node_id = newNode->id = next_node_id++;
 

@@ -14,6 +14,11 @@ const node_id_t NODE_ID_FIRST = 1u;
 
 void Node::AssignTask(std::shared_ptr<Task> task)
 {
+    // do not assing the same task twice
+    for (auto ptr : tasks) {
+        if (ptr->id == task->id) return;
+    }
+
     tasks.push_back(task);
     
     auto msg = std::make_unique<TaskMessage>();
@@ -30,7 +35,7 @@ void Node::UnassignTask(std::shared_ptr<Task> task)
         return;
     
     tasks.erase(it_task);
-    
+
     auto msg = std::make_unique<TaskNotifyMessage>();
     msg->task_id = task->id;
     msg->task_status = TS_CANCELLED;
@@ -78,8 +83,10 @@ void balanceTasks(State& state) {
     // -- when connection to node is broken or restored, 
     // when a node finishes some tasks, a new node registers, etc.
 
+    state.mtx_taskBalancing.lock();
     state.mtx_nodes.lock();
     state.mtx_tasks.lock();
+
 
     // TODO: split & balance unassigned tasks between nodes (somehow)
     
@@ -87,7 +94,10 @@ void balanceTasks(State& state) {
         
         if (task->status == TS_NONE) {
 
+            // get eligible nodes zajmuje mutex
+            state.mtx_nodes.unlock();
             auto node_ids = get_eligible_nodes_for_task(state, *task);
+            state.mtx_nodes.lock();
 
             if (node_ids.empty()) continue;
 
@@ -98,6 +108,9 @@ void balanceTasks(State& state) {
 
     }
 
+    state.suspectedBalancing = false;
+
     state.mtx_nodes.unlock();
     state.mtx_tasks.unlock();
+    state.mtx_taskBalancing.unlock();
 }

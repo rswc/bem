@@ -109,6 +109,7 @@ void wait_for_instructions_in_loop() {
                     case TaskStatus::TS_CANCELLED: {
                         if (msg_ptr->task_id == getGlobalState().current_task_id) {
                             std::cerr << "Received CANCEL for " << msg_ptr->task_id << ". Canceling." << std::endl;
+                            getGlobalState().current_task_id = TASK_ID_NONE;
                         } else {
                             std::cerr << "[?] Received CANCEL for " << msg_ptr->task_id << ", but currently running: " 
                                 << getGlobalState().current_task_id << ". Ignoring." << std::endl;
