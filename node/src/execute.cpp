@@ -88,12 +88,14 @@ Result execute_task(const Task& task) {
     
     std::string game_command = prepare_command(games_dir, game_launcher, game_name, ag1_path, ag2_path, task.move_limit_ms, task.board_size);
     
-    std::cout << "[ET]: running: " << game_command << std::endl;
 
     Result result;
     for (uint32_t i = 0u; i < task.games; i++) {
         if (getGlobalState().should_quit || getGlobalState().current_task_id == TASK_ID_NONE) 
             break;
+
+        std::cout << "> [" << task.id << "] (" << i + 1 << "/" << task.games <<") Running: " << game_command << std::endl;
+
 
         int flags = launch_subprocess(game_command);
         result.games++;
