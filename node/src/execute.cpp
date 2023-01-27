@@ -8,6 +8,7 @@
 #include <memory> // make_unique
 #include <chrono> // std::chrono::seconds
 #include <iostream>
+#include <sstream>
 
 #define GAME_OUTPUT_BUFFER_SIZE 16
 

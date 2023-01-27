@@ -7,6 +7,7 @@ project(BEM)
 
 # Set the C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "-pthread")
 
 # Add the "common" directory as a subdirectory
 add_subdirectory(common)
