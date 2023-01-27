@@ -152,6 +152,8 @@ void command_task(State& state) {
     } else if (!valid_ag2) {
         std::cout << "Invalid Agent2ID: " << ag2 << " does not exists. Check `games` command for available ids.\n";
         return;
+    } else if (board_size == 0 || move_limit_ms == 0 || games == 0) {
+        std::cout << "Invalid parameters: at least one of given values is 0. \n";
     }
 
     // "Template" task -- it will be split into sub-tasks and divided
@@ -171,10 +173,6 @@ void command_task(State& state) {
     
     if (node_ids.empty()) {
         std::cout << "[!] No eligible nodes found. Cannot send task." << std::endl;
-        std::cout << "GameID: " << gid << std::endl;
-        std::cout << "AG1: " << ag1 << std::endl;
-        std::cout << "AG2: " << ag2 << std::endl;
-
     } else { 
         size_t n_nodes = node_ids.size();
         std::vector<uint32_t> n_games(n_nodes, games / n_nodes);
