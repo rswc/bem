@@ -48,9 +48,7 @@ void command_tasks(State& state) {
                 std::cout << "RUNNING (waiting for " << group->remaining_tasks << " sub-tasks to complete)\n";
             } break;
             case TS_DONE: {
-                std::cout << "DONE: (p1/draw/p2)=(" << group->aggregate_result.win_agent1
-                    << "/" << group->aggregate_result.games - group->aggregate_result.win_agent1 - group->aggregate_result.win_agent2
-                    << "/" << group->aggregate_result.win_agent2 << ")\n";
+                std::cout << "DONE: " << group->aggregate_result << std::endl; 
             } break;
             case TS_CANCELLED: {
                 std::cout << "CANCELLED\n";
