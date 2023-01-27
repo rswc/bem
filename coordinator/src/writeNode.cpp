@@ -22,9 +22,10 @@ void writeNode(int sock, std::shared_ptr<Node> node, State& state)
         while (mbuf.RemainingBytes() > 0)
         {
             auto ret = write(sock, mbuf.Next(), mbuf.RemainingBytes());
-            if  (ret == -1)
+            if  (ret <= 0)
             {
-                error(1, errno, "write failed on node %d", node->id);
+                state.terminateNode(node->id);
+                break;
             }
 
             mbuf.Advance(ret);

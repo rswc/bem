@@ -51,7 +51,7 @@ struct State
 
         // TODO: add gracefuly killing threads, destroying resources
         // TODO: WR or RDWR? Maybe node can send result? 
-        shutdown(nodes[nid]->socket, SHUT_WR);
+        shutdown(nodes[nid]->socket, SHUT_RDWR);
         nodes.erase(nid);
 
         mtx_nodes.unlock();
