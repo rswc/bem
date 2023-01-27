@@ -1,6 +1,7 @@
 #pragma once
 
 #include "byteBuffer.h"
+#include <iostream>
 
 struct Result {
     uint32_t games;
@@ -9,6 +10,15 @@ struct Result {
     uint32_t win_agent2;
     uint32_t timeout_agent1; // number of round player2 has been timed out
     uint32_t timeout_agent2; // implies other player has won the game (included won games)
+
+    friend std::ostream& operator<<(std::ostream& out, const Result &result) {
+        out << "(G:" << result.games << "/E:" << result.failed_games 
+            << "|W1:" << result.win_agent1 << "/W2:" << result.win_agent2 
+            << "|P1:" << (result.games > 0u ? result.win_agent1 * 100 / result.games : 0) << "%"
+            << "/P2:" << (result.games > 0u ? result.win_agent2 * 100 / result.games : 0) << "%"
+            << "|T1:" << result.timeout_agent1 << "/T2:" << result.timeout_agent2 << ")";
+        return out;
+    }
 
     Result merge(Result& other) {
         return Result (

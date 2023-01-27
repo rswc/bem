@@ -1,5 +1,6 @@
 #include "result.h"
 
+
 void serialize(const Result& result, ByteBuffer& buffer) {
     buffer.Put<uint32_t>(result.games);
     buffer.Put<uint32_t>(result.failed_games);
