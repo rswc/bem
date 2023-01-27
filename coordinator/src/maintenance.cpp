@@ -3,7 +3,13 @@
 #include "node.h"
 
 void doMaintenance(State &state) {
+    
 
+    state.mtx_config.lock();
+    double threshold_s = (double) state.config.node_broken_seconds;
+    state.mtx_config.unlock();
+
+    std::cout << "[MT]: Starting maintenance loop with " << threshold_s << " [s] threshold for broken connections." << std::endl;
 
     while (!state.shouldQuit)
     {
@@ -31,7 +37,7 @@ void doMaintenance(State &state) {
                     state.suspectedBalancing = true;
                 }
 
-            } else if (node->time_from_request() > 5. && !(node->flags & NodeFlag::CONN_BROKEN)) {
+            } else if (node->time_from_request() > threshold_s && !(node->flags & NodeFlag::CONN_BROKEN)) {
                 
                 // if still awaiting response from previous ping,
                 // consider the connection (temporarily?) broken

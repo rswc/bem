@@ -9,6 +9,7 @@
 
 struct CoordinatorConfig {
     uint16_t port;
+    uint64_t node_broken_seconds;
     uint8_t protocol_version;
     GameList gamelist;
 };
