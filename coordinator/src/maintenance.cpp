@@ -9,7 +9,7 @@ void doMaintenance(State &state) {
     double threshold_s = (double) state.config.node_broken_seconds;
     state.mtx_config.unlock();
 
-    std::cout << "[MT]: Starting maintenance loop with " << threshold_s << " [s] threshold for broken connections." << std::endl;
+    // std::cout << "[MT]: Starting maintenance loop with " << threshold_s << " [s] threshold for broken connections." << std::endl;
 
     while (!state.shouldQuit)
     {
