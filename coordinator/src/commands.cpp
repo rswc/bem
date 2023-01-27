@@ -89,12 +89,7 @@ void command_cancel(State& state) {
 
             for (auto& [node_id, node] : state.nodes)
             {
-                for (auto& node_task : node->tasks)
-                {
-                    if (node_task->id == task_id) {
-                        node->UnassignTask(node_task);
-                    }
-                }
+                node->UnassignTask(task_id);
             }
         }
     } else {

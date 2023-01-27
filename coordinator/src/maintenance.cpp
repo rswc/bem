@@ -46,15 +46,23 @@ void doMaintenance(State &state) {
 
                 // The node's tasks are unassigned, so if connection is restored,
                 // it should receive the instruction to cancel the task
+                
+                std::vector<task_id_t> mark_for_delete;
+
                 for (auto& task : node->tasks) {
                     if (task->status == TS_RUNNING) {
                         task->status = TS_NONE;
-
-                        node->UnassignTask(task);
-
+                        mark_for_delete.push_back(task->id);
                         // does not require a mutex
-                        state.suspectedBalancing = true;
                     }
+                }
+                
+                for (task_id_t task_id : mark_for_delete) {
+                    node->UnassignTask(task_id);
+                }
+
+                if (!mark_for_delete.empty()) {
+                    state.suspectedBalancing = true;
                 }
 
                 std::cout << "[MNCE] Connection with Node #" << nid << " broken \n";
