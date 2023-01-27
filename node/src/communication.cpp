@@ -60,6 +60,7 @@ void read_from_server_in_loop(int socket, size_t read_size) {
         auto len = read(socket, &buffer, read_size);
 	    if (len == -1) {
             error(1, errno, "read failed on server");
+            break;
         } 
         else if (len > 0) {
             factory.Fill(buffer, len);
@@ -102,6 +103,7 @@ void write_to_server_in_loop(int socket) {
         if  (ret == -1) { 
             // TODO: should we interpret other codes? like EAGAIN
             error(1, errno, "write failed");
+            break;
         } else if (ret == 0) {
             // connection was closed
             break;
