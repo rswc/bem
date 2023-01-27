@@ -1,6 +1,6 @@
 {
     "port" : 12345,
-    "node_broken_seconds" : 2,
+    "node_broken_seconds" : 5,
     "protocol_version" : 5,
     "gamelist" : {
         "games": [
