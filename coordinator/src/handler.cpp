@@ -16,16 +16,22 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
 
     if (task->status == TS_RUNNING) {
         auto group = state.groups[task->group_id];
+        
+        if (group->status == TS_DONE) {
+            std::cout << "[WT]: Received result for group task that status is TS_DONE, ignoring." << std::endl;
+        } else {
+            group->remaining_tasks--;
+            group->aggregate_result = group->aggregate_result.merge(res);
 
-        group->remaining_tasks--;
-        group->aggregate_result = group->aggregate_result.merge(res);
+            std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
 
-        std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
-
-        if (group->remaining_tasks == 0) {
-            group->status = TS_DONE;
-            std::cout << "- GROUP [" << group->id << "] has finished processing -> " << group->aggregate_result << std::endl;
+            if (group->remaining_tasks == 0) {
+                group->status = TS_DONE;
+                std::cout << "- GROUP [" << group->id << "] has finished processing -> " << group->aggregate_result << std::endl;
+            }
+            task->status = TS_DONE;
         }
+        
     }
 
     state.mtx_tasks.unlock();
