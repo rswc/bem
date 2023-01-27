@@ -27,17 +27,22 @@ void Node::AssignTask(std::shared_ptr<Task> task)
     Send(std::move(msg));
 }
 
-void Node::UnassignTask(std::shared_ptr<Task> task)
-{
-    auto it_task = std::find(tasks.begin(), tasks.end(), task);
+void Node::UnassignTask(task_id_t id_to_delete) {
 
-    if (it_task == tasks.end())
+    auto it = tasks.begin();
+    while (it != tasks.end()) {
+        if (it->get()->id == id_to_delete) {
+            break;
+        }
+        it++;
+    }
+
+    if (it == tasks.end())
         return;
-    
-    tasks.erase(it_task);
 
+    tasks.erase(it);
     auto msg = std::make_unique<TaskNotifyMessage>();
-    msg->task_id = task->id;
+    msg->task_id = id_to_delete;
     msg->task_status = TS_CANCELLED;
 
     Send(std::move(msg));

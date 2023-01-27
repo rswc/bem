@@ -12,6 +12,7 @@ target_sources(coordinator
         src/handler.cpp
         src/config.cpp
         src/maintenance.cpp
+        src/commands.cpp
 )
 
 # Link the "coordinator" target against the "common" library

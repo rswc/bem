@@ -4,6 +4,7 @@
 void to_json(json& j, const CoordinatorConfig& c) {
     j = json { 
         { "port", c.port },  
+        { "node_broken_seconds", c.node_broken_seconds },
         { "protocol_version", c.protocol_version },
         { "gamelist", c.gamelist }
     };
@@ -11,6 +12,7 @@ void to_json(json& j, const CoordinatorConfig& c) {
 
 void from_json(const json& j, CoordinatorConfig& c) {
     j.at("port").get_to(c.port);
+    j.at("node_broken_seconds").get_to(c.node_broken_seconds);
     j.at("protocol_version").get_to(c.protocol_version);
     j.at("gamelist").get_to(c.gamelist);
 }

@@ -7,14 +7,7 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
     task_id_t task_id = msg->get_task_id();
     Result res = msg->get_result();
 
-    std::cout << "[WT]: Node " << node_id << " sent RESULT for task id: " << task_id << std::endl;
-    std::cout << "- " << res.games << " games played." << std::endl;
-    std::cout << "- " << res.failed_games << " games failed." << std::endl;
-    std::cout << "- " << res.win_agent1 << " games won by agent1" << std::endl;
-    std::cout << "- " << res.win_agent2 << " games won by agent2" << std::endl;
-    std::cout << "- " << res.timeout_agent1 << " times agent1 timed out (agent2 won)" << std::endl;
-    std::cout << "- " << res.timeout_agent2 << " times agent2 timed out (agent1 won)" << std::endl;
-    std::cout << "- " << res.games - res.failed_games - res.win_agent1 - res.win_agent2 << " draws." << std::endl;
+    std::cout << "[WT]: Node " << node_id << " sent RESULT for subtask_id = " << task_id << " -> " << res << std::endl;
 
     state.mtx_tasks.lock();
     state.mtx_groups.lock();
@@ -23,19 +16,22 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
 
     if (task->status == TS_RUNNING) {
         auto group = state.groups[task->group_id];
+        
+        if (group->status == TS_DONE) {
+            std::cout << "[WT]: Received result for group task that status is TS_DONE, ignoring." << std::endl;
+        } else {
+            group->remaining_tasks--;
+            group->aggregate_result = group->aggregate_result.merge(res);
 
-        group->remaining_tasks--;
-        group->aggregate_result = group->aggregate_result.merge(res);
+            std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
 
-        std::cout << "- GROUP [" << group->id << "] now has " << group->remaining_tasks << " remaining." << std::endl;
-
-        if (group->remaining_tasks == 0) {
-            group->status = TS_DONE;
-            std::cout << "- GROUP [" << group->id << "] has finished processing." << std::endl;
-            std::cout << "-- Total of " << group->aggregate_result.games << " games played. " << std::endl;
-            std::cout << "-- Total of " << group->aggregate_result.win_agent1 << " won by agent 1. " << std::endl;
-            std::cout << "-- Total of " << group->aggregate_result.win_agent2 << " won by agent 2. " << std::endl;
+            if (group->remaining_tasks == 0) {
+                group->status = TS_DONE;
+                std::cout << "- GROUP [" << group->id << "] has finished processing -> " << group->aggregate_result << std::endl;
+            }
+            task->status = TS_DONE;
         }
+        
     }
 
     state.mtx_tasks.unlock();

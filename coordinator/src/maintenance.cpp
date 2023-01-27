@@ -3,7 +3,13 @@
 #include "node.h"
 
 void doMaintenance(State &state) {
+    
 
+    state.mtx_config.lock();
+    double threshold_s = (double) state.config.node_broken_seconds;
+    state.mtx_config.unlock();
+
+    // std::cout << "[MT]: Starting maintenance loop with " << threshold_s << " [s] threshold for broken connections." << std::endl;
 
     while (!state.shouldQuit)
     {
@@ -31,7 +37,7 @@ void doMaintenance(State &state) {
                     state.suspectedBalancing = true;
                 }
 
-            } else if (node->time_from_request() > 5. && !(node->flags & NodeFlag::CONN_BROKEN)) {
+            } else if (node->time_from_request() > threshold_s && !(node->flags & NodeFlag::CONN_BROKEN)) {
                 
                 // if still awaiting response from previous ping,
                 // consider the connection (temporarily?) broken
@@ -40,15 +46,23 @@ void doMaintenance(State &state) {
 
                 // The node's tasks are unassigned, so if connection is restored,
                 // it should receive the instruction to cancel the task
+                
+                std::vector<task_id_t> mark_for_delete;
+
                 for (auto& task : node->tasks) {
                     if (task->status == TS_RUNNING) {
                         task->status = TS_NONE;
-
-                        node->UnassignTask(task);
-
+                        mark_for_delete.push_back(task->id);
                         // does not require a mutex
-                        state.suspectedBalancing = true;
                     }
+                }
+                
+                for (task_id_t task_id : mark_for_delete) {
+                    node->UnassignTask(task_id);
+                }
+
+                if (!mark_for_delete.empty()) {
+                    state.suspectedBalancing = true;
                 }
 
                 std::cout << "[MNCE] Connection with Node #" << nid << " broken \n";

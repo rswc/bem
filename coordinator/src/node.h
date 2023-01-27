@@ -58,7 +58,7 @@ public:
     std::deque<std::unique_ptr<BaseMessage>> messageQueue;
 
     void AssignTask(std::shared_ptr<Task> task);
-    void UnassignTask(std::shared_ptr<Task> task);
+    void UnassignTask(task_id_t id_to_delete);
     void Send(std::unique_ptr<BaseMessage> message);
 
     bool is_registered() const { return (flags & NodeFlag::REGISTERED); } 
