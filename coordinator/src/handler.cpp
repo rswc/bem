@@ -24,10 +24,7 @@ void handleResultMessage(State &state, int node_id, ResultMessage *msg) {
 
         if (group->remaining_tasks == 0) {
             group->status = TS_DONE;
-            std::cout << "- GROUP [" << group->id << "] has finished processing." << std::endl;
-            std::cout << "-- Total of " << group->aggregate_result.games << " games played. " << std::endl;
-            std::cout << "-- Total of " << group->aggregate_result.win_agent1 << " won by agent 1. " << std::endl;
-            std::cout << "-- Total of " << group->aggregate_result.win_agent2 << " won by agent 2. " << std::endl;
+            std::cout << "- GROUP [" << group->id << "] has finished processing -> " << group->aggregate_result << std::endl;
         }
     }
 
