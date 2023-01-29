@@ -59,7 +59,7 @@ void read_from_server_in_loop(int socket, size_t read_size) {
 
         auto len = read(socket, &buffer, read_size);
 	    if (len == -1) {
-            error(1, errno, "read failed on server");
+            std::cerr << "read(): Read Failed on server" << std::endl;
             break;
         } 
         else if (len > 0) {
@@ -101,8 +101,7 @@ void write_to_server_in_loop(int socket) {
         auto ret = write(socket, mbuf.Next(), mbuf.RemainingBytes());
 
         if  (ret == -1) { 
-            // TODO: should we interpret other codes? like EAGAIN
-            error(1, errno, "write failed");
+            std::cerr << "write(): Wead failed on server" << std::endl;
             break;
         } else if (ret == 0) {
             // connection was closed
