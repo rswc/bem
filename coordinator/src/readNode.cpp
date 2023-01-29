@@ -15,7 +15,7 @@ void readNode(int sock, std::shared_ptr<Node> node, State& state)
     while (!state.shouldQuit)
     {
         auto len = read(sock, &buf, 32);
-	    if (len == -1) 
+	    if (len <= 0) 
         {
             // error(1, errno, "read failed on node %d", node->id);
             state.terminateNode(node->id);
@@ -33,10 +33,6 @@ void readNode(int sock, std::shared_ptr<Node> node, State& state)
             }
 
             factory.FinishExtraction();
-        }
-        else
-        {
-            break;
         }
     }
 }
