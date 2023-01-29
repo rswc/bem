@@ -23,7 +23,7 @@ void terminate_program() {
 
         // read_from_server_in_loop, write_to_server_in_loop
         // TODO: SHUT_RW or SHUT_RWRD?
-        shutdown(getGlobalState().socket, SHUT_RD);
+        shutdown(getGlobalState().socket, SHUT_RDWR);
     }
     getGlobalState().mtx_terminate.unlock();
 }

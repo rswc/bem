@@ -20,6 +20,7 @@
 #include "json.hpp"
 #include "config.h"
 #include "commands.h"
+#include "signal.h"
 
 
 bool setup(State& state, const std::string& configpath) {
@@ -27,6 +28,7 @@ bool setup(State& state, const std::string& configpath) {
 }
 
 int main (int argc, char* argv[]) {
+    signal(SIGPIPE, SIG_IGN);
     std::string configpath = std::string(DEFAULT_CONFIG_FILENAME);
     if (argc == 2) {
         configpath = std::string(argv[1]);
