@@ -25,7 +25,7 @@ void writeNode(int sock, std::shared_ptr<Node> node, State& state)
             if  (ret <= 0)
             {
                 state.terminateNode(node->id);
-                break;
+                return;
             }
 
             mbuf.Advance(ret);
